@@ -1,0 +1,7 @@
+dependencies {
+	compile project(':in-memory-queue')
+	compile project(':memory-pool')
+	
+	testCompile group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
+	
+}
