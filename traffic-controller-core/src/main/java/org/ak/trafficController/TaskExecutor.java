@@ -12,11 +12,13 @@ import org.ak.trafficController.messaging.mem.InMemoryQueue;
 public class TaskExecutor {
 	static Logger LOGGER = Logger.getLogger(TaskExecutor.class.getName());
 	static TaskExecutor instance = new TaskExecutor();
-	static InMemoryQueue<Task> fastChannel = new InMemoryQueue<Task>("fastChannel");
-	static InMemoryQueue<Task> slowChannel = new InMemoryQueue<Task>("slowChannel");
-	static {
+	InMemoryQueue<Task> fastChannel = new InMemoryQueue<Task>("fastChannel");
+	InMemoryQueue<Task> slowChannel = new InMemoryQueue<Task>("slowChannel");
+	
+	public TaskExecutor() {
 		init();
 	}
+	
 	public void enque(Task nextTask) {
 		try{
 			switch (nextTask.taskType) {
@@ -33,7 +35,7 @@ public class TaskExecutor {
 			LOGGER.log(Level.WARNING, "failed to attach task..." + nextTask, re);
 		}
 	}
-	private static void init() {
+	public void init() {
 		int processors = Runtime.getRuntime().availableProcessors();
 		int half = processors/2;
 		if (half == 0) {
@@ -43,29 +45,40 @@ public class TaskExecutor {
 		fastChannel.setDirectConsumerCount(processors);
 		slowChannel.setDirectConsumer(Task::execute);
 		slowChannel.setDirectConsumerCount(half);
+		
 	}
 	
-	static AtomicInteger ti = new AtomicInteger();
+	AtomicInteger ti = new AtomicInteger();
 
-	public static ExecutableTask of(Runnable runnable) {
+	public ExecutableTask of(Runnable runnable) {
 		ExecutableTask task = ExecutableTask.getFromPool(ti.incrementAndGet(),runnable, TaskType.NORMAL);
+		task.taskExecutor = this;
 		return task;
 	}
 	
-	public static <T> ReturningTask<T> of(Supplier<T> supplier) {
-		ReturningTask<T> rt =ReturningTask.getFromPool( ti.incrementAndGet(),supplier, TaskType.NORMAL);
+	public <T> ReturningTask<T> of(Supplier<T> supplier) {
+		ReturningTask<T> rt =ReturningTask.getFromPool(ti.incrementAndGet(),supplier, TaskType.NORMAL);
+		rt.taskExecutor = this;
 		return rt;
 	}
 	
-	public static ParallelExecutingTask parallelExecutingTasks(Runnable... runnables) {
-		return ParallelExecutingTask.getFromPool( ti.incrementAndGet(), TaskType.NORMAL, runnables);
+	public ParallelExecutingTask parallelExecutingTasks(Runnable... runnables) {
+		ParallelExecutingTask task = ParallelExecutingTask.getFromPool( ti.incrementAndGet(), TaskType.NORMAL, runnables);
+		task.taskExecutor = this;
+		return task;
 	}
 	
-	public static <T> ParallelReturningTask<T> parallelExecutingTasks(Supplier<T>... runnables) {
-		return ParallelReturningTask.getFromPool(ti.incrementAndGet(),TaskType.NORMAL,runnables);
+	public <T> ParallelReturningTask<T> parallelExecutingTasks(Supplier<T>... runnables) {
+		ParallelReturningTask<T> task = ParallelReturningTask.getFromPool(ti.incrementAndGet(),TaskType.NORMAL,runnables);
+		task.taskExecutor = this;
+		return task;
 	}
 	public static TaskExecutor getInstance() {
-		// TODO Auto-generated method stub
 		return instance;
 	}
+	
+	protected Integer generateNewUniqueNumber() {
+		return this.ti.incrementAndGet();
+	}
+
 }

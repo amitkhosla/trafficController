@@ -1,21 +1,16 @@
 package org.ak.trafficController;
 
-import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.ak.trafficController.pool.ObjectPoolManager;
 import org.ak.trafficController.pool.Poolable;
 
 public abstract class Task implements Poolable {
 	Logger logger = Logger.getLogger(Task.class.getName());
-	static Map<Integer, ArrayBlockingQueue> map = new ConcurrentHashMap<Integer, ArrayBlockingQueue>();
 	protected Task startingTask;
 	protected Integer uniqueNumber;
-	protected Object monitor;
-	protected TaskExecutor taskExecutor = TaskExecutor.getInstance();
+	protected TaskExecutor taskExecutor;
 	public enum TaskType {
 		SLOW, NORMAL, NOTIFY
 	}
@@ -29,7 +24,6 @@ public abstract class Task implements Poolable {
 		startingTask = null;
 		nextTask = null;
 		uniqueNumber = null;
-		monitor = null;
 	}
 	
 	private String getStackTrace() {
@@ -43,7 +37,6 @@ public abstract class Task implements Poolable {
 	abstract protected void executeCurrentTask();
 	
 	public Task(int unique,TaskType taskType) {
-		this.monitor = Thread.currentThread().getName();
 		startingTask = this;
 		this.taskType = taskType;
 		this.uniqueNumber = unique;
@@ -67,14 +60,17 @@ public abstract class Task implements Poolable {
 		return this.startingTask != this;
 	}
 
+	/**
+	 * This will start the execution and calling thread will wait for execution.
+	 */
 	public void start() {
-		NotifyingTask task = NotifyingTask.getFromPool(uniqueNumber);
+		NotifyingTask task = new NotifyingTask(uniqueNumber);
 		then(task);
 		doSubmit();
-		pauseExecutingThread();
+		pauseExecutingThread(task);
 	}
 	
-	protected void notifyBack() {
+/*	protected void notifyBack() {
 		ArrayBlockingQueue abq = map.get(this.uniqueNumber);
 		if (abq==null) {
 			map.putIfAbsent(this.uniqueNumber, ObjectPoolManager.getInstance().getFromPool(ArrayBlockingQueue.class, ()->new ArrayBlockingQueue(1)));
@@ -86,19 +82,16 @@ public abstract class Task implements Poolable {
 			System.err.println("Error occured for ... " + monitor + ">>>>" + uniqueNumber);
 			throw re;
 		}
-	}
+	}*/
 	
-	protected void pauseExecutingThread() {
-		ArrayBlockingQueue q = ObjectPoolManager.getInstance().getFromPool(ArrayBlockingQueue.class, ()->new ArrayBlockingQueue(1));
-		map.putIfAbsent(this.uniqueNumber, q);
-		q = map.get(uniqueNumber);
-		try {
-			q.take();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+	protected void pauseExecutingThread(NotifyingTask task) {
+		synchronized(task) {
+			try {
+				task.wait();
+			} catch (InterruptedException e) {
+				logger.log(Level.WARNING, "could not wait....", e);
+			}
 		}
-		ObjectPoolManager.getInstance().addBackToPoolGeneric(map.remove(this.uniqueNumber));
-		this.startingTask.addBackToPool();
 	}
 
 	public void submit() {
@@ -106,14 +99,19 @@ public abstract class Task implements Poolable {
 	}
 
 	protected void doSubmit() {
+		try {
 		taskExecutor.enque(this.startingTask);
+		} catch (Exception e) {
+			System.err.println(this);
+			e.printStackTrace();
+		}
 	}
 	
 	public Task then(Task task) {
 		this.nextTask = task;
 		task.startingTask = this.startingTask;
-		task.monitor = this.monitor;
 		task.uniqueNumber = this.uniqueNumber;
+		task.taskExecutor = this.taskExecutor;
 		return task;
 	}
 	
@@ -142,25 +140,21 @@ public abstract class Task implements Poolable {
 	}
 	
 	public <T> ParallelExecutingTask<T> thenParallel(Runnable... runnables) {
-		return thenParallel(TaskType.NORMAL,
-				runnables);
+		return thenParallel(TaskType.NORMAL, runnables);
 	}
 
-	public <T> ParallelExecutingTask<T> thenParallel(TaskType tp,
-			Runnable... runnables) {
+	public <T> ParallelExecutingTask<T> thenParallel(TaskType tp, Runnable... runnables) {
 		ParallelExecutingTask<T> parallelExecutingTask = ParallelExecutingTask.getFromPool(uniqueNumber, tp, runnables);
 		then(parallelExecutingTask);
 		return parallelExecutingTask;
 	}
 	
 	public <T> ParallelReturningTask<T> thenParallel(Supplier<T>... suppliers) {
-		ParallelReturningTask<T> parallelExecutingTask = thenParallel(TaskType.NORMAL,
-				suppliers);
+		ParallelReturningTask<T> parallelExecutingTask = thenParallel(TaskType.NORMAL, suppliers);
 		return parallelExecutingTask;
 	}
 
-	public <T> ParallelReturningTask<T> thenParallel(TaskType tp,
-			Supplier<T>... suppliers) {
+	public <T> ParallelReturningTask<T> thenParallel(TaskType tp, Supplier<T>... suppliers) {
 		ParallelReturningTask<T> parallelExecutingTask = ParallelReturningTask.getFromPool(uniqueNumber,tp,suppliers);
 		then(parallelExecutingTask);
 		return parallelExecutingTask;

@@ -34,7 +34,9 @@ public abstract class ParallelTask<T> extends Task {
 	}
 
 	protected ExecutableTask getExecutable(Runnable runnable, TaskType taskType) {
-		return ExecutableTask.getFromPool(uniqueNumber,()->executeRunnable(runnable), taskType);
+		ExecutableTask task = ExecutableTask.getFromPool(uniqueNumber,()->executeRunnable(runnable), taskType);
+		task.taskExecutor = this.taskExecutor;
+		return task;
 	}
 
 	public void executeRunnable(Runnable runnable) {

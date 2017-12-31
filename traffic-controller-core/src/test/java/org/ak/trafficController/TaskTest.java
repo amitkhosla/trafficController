@@ -14,17 +14,14 @@ public class TaskTest {
 			
 			@Override
 			protected void executeCurrentTask() {
-				// TODO Auto-generated method stub
 				
 			}
 		};
 		assertEquals(TaskType.NORMAL, task.taskType);
 		assertNotNull(task.startingTask);
-		assertNotNull(task.monitor);
 		assertEquals(234, task.uniqueNumber.intValue());
 		
 		task.clean();
-		assertNull(task.monitor);
 		assertNull(task.startingTask);
 		assertNull(task.uniqueNumber);
 		assertNull(task.taskType);

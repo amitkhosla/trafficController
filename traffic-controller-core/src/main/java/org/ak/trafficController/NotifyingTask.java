@@ -1,15 +1,6 @@
 package org.ak.trafficController;
 
-import org.ak.trafficController.pool.ObjectPoolManager;
-
-
 public class NotifyingTask extends Task {
-	
-	static NotifyingTask getFromPool(int unique) {
-		NotifyingTask et = ObjectPoolManager.getInstance().getFromPool(NotifyingTask.class, ()->new NotifyingTask(unique));
-		et.uniqueNumber = unique;
-		return et;
-	}
 	
 	public NotifyingTask(int unique) {
 		super(unique, TaskType.NOTIFY);
@@ -17,6 +8,20 @@ public class NotifyingTask extends Task {
 	
 	@Override
 	protected void executeCurrentTask() {
-		notifyBack();
+		try {
+			Thread.sleep(5l);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		synchronized (this) { 
+			this.notifyAll();
+		}
+	}
+
+	@Override
+	public boolean canSendBackToPool() {
+		return false;
 	}
 }

@@ -83,6 +83,7 @@ public class ReturningTaskTest {
 		};
 		AtomicInteger ai = new AtomicInteger();
 		ReturningTask<Integer> rt = new ReturningTask<Integer>(1234, ()->5, TaskType.NORMAL);
+		rt.taskExecutor =  TaskExecutor.instance;
 		rt.then(i->i*2).thenConsume(i->{ai.set(i);});
 		
 		rt.execute();

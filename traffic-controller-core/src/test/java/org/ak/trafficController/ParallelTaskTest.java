@@ -13,21 +13,6 @@ import org.junit.Test;
 
 public class ParallelTaskTest {
 
-	@Test
-	public void testExecuteNotNotify() {
-		StringBuilder sb = new StringBuilder();
-		ParallelTask pt = new ParallelTask(0, TaskType.NORMAL) {
-			@Override
-			protected void executeNextTask() {
-				sb.append("executeNextTask called");
-			}
-		};
-		pt.addRunnables(()->{});
-		pt.execute();
-		assertTrue(sb.length() == 0);
-		
-	}
-	
 
 	@Test
 	public void testPostTask() {
