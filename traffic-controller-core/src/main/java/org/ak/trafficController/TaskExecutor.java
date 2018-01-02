@@ -115,4 +115,29 @@ public class TaskExecutor {
 		return this;
 	}
 
+	
+	/**
+	 * This allows to create executor with number of fast and slow consumers as per percent of number of cores.
+	 * For example if we have this as fast as 100 and slow as 200, for a system having 4 cores, it will imply 4 consumers of fast thread and 8 threads of slow.
+	 * @param factorForFastQueuePercent Fast thread percentage
+	 * @param factorForSlowQueuePercent Slow thread percentage
+	 * @return TaskExecutor
+	 */
+	public TaskExecutor getTaskExecutorWithConsumersMultipleOfCores(int factorForFastQueuePercent, int factorForSlowQueuePercent) {
+		TaskExecutor executor = new TaskExecutor();
+		int processors = Runtime.getRuntime().availableProcessors();
+		executor.setNumberOfFastQueueConsumers(getConsumersForProcessors(processors, factorForFastQueuePercent));
+		executor.setNumberOfSlowQueueConsumers(getConsumersForProcessors(processors, factorForSlowQueuePercent));
+		executor.init();
+		return executor;
+	}
+	
+
+	private int getConsumersForProcessors(int processors, int factorForFastQueue) {
+		int count = processors * factorForFastQueue / 100;
+		if (count == 0) {
+			count = 1;
+		}
+		return count;
+	}
 }
