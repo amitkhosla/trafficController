@@ -12,7 +12,7 @@ public class DummyProgram {
 		ConcurrentLinkedQueue<Integer> clq = new ConcurrentLinkedQueue<>();
 		TaskExecutor taskExecutor = TaskExecutor.getInstance();
 		List<Thread> threads = new ArrayList<>();
-		int max = 10000;
+		int max = 30000;
 		for (int i=0;i<max; i++) {
 			int k = i;
 			Thread thread = new Thread(()->{

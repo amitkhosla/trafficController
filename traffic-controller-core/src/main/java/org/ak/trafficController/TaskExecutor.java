@@ -11,12 +11,14 @@ import org.ak.trafficController.messaging.mem.InMemoryQueue;
 
 public class TaskExecutor {
 	static Logger LOGGER = Logger.getLogger(TaskExecutor.class.getName());
-	static TaskExecutor instance = new TaskExecutor();
+	static TaskExecutor instance;
 	InMemoryQueue<Task> fastChannel = new InMemoryQueue<Task>("fastChannel");
 	InMemoryQueue<Task> slowChannel = new InMemoryQueue<Task>("slowChannel");
 	
+	int numberOfFastQueueConsumers;
+	int numberOfSlowQueueConsumers;
+	
 	public TaskExecutor() {
-		init();
 	}
 	
 	public void enque(Task nextTask) {
@@ -35,17 +37,22 @@ public class TaskExecutor {
 			LOGGER.log(Level.WARNING, "failed to attach task..." + nextTask, re);
 		}
 	}
+	
 	public void init() {
+		fastChannel.setDirectConsumer(Task::execute);
+		fastChannel.setDirectConsumerCount(numberOfFastQueueConsumers);
+		slowChannel.setDirectConsumer(Task::execute);
+		slowChannel.setDirectConsumerCount(numberOfSlowQueueConsumers);
+	}
+	
+	protected void setDefaultSettings() {
 		int processors = Runtime.getRuntime().availableProcessors();
 		int half = processors/2;
 		if (half == 0) {
 			half = 1;
 		}
-		fastChannel.setDirectConsumer(Task::execute);
-		fastChannel.setDirectConsumerCount(processors);
-		slowChannel.setDirectConsumer(Task::execute);
-		slowChannel.setDirectConsumerCount(half);
-		
+		this.numberOfFastQueueConsumers = half;
+		this.numberOfSlowQueueConsumers = processors;
 	}
 	
 	AtomicInteger ti = new AtomicInteger();
@@ -74,11 +81,38 @@ public class TaskExecutor {
 		return task;
 	}
 	public static TaskExecutor getInstance() {
+		if (instance == null) {
+			synchronized (TaskExecutor.class) {
+				if (instance == null) {
+					instance = new TaskExecutor();
+					instance.setDefaultSettings();
+					instance.init();
+				}
+			}
+		}
 		return instance;
 	}
 	
 	protected Integer generateNewUniqueNumber() {
 		return this.ti.incrementAndGet();
+	}
+
+	public int getNumberOfFastQueueConsumers() {
+		return numberOfFastQueueConsumers;
+	}
+
+	public TaskExecutor setNumberOfFastQueueConsumers(int numberOfFastQueueConsumers) {
+		this.numberOfFastQueueConsumers = numberOfFastQueueConsumers;
+		return this;
+	}
+
+	public int getNumberOfSlowQueueConsumers() {
+		return numberOfSlowQueueConsumers;
+	}
+
+	public TaskExecutor setNumberOfSlowQueueConsumers(int numberOfSlowQueueConsumers) {
+		this.numberOfSlowQueueConsumers = numberOfSlowQueueConsumers;
+		return this;
 	}
 
 }
