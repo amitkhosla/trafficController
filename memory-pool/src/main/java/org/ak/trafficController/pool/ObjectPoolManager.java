@@ -2,6 +2,7 @@ package org.ak.trafficController.pool;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
@@ -42,7 +43,10 @@ public class ObjectPoolManager {
 	}
 	
 	public <T> void addBackToPoolGeneric(T obj) {
-		map.get(obj.getClass()).addBackToPool(obj);
+		ObjectPool objectPool = map.get(obj.getClass());
+		if (!Objects.isNull(objectPool)) { 
+			objectPool.addBackToPool(obj);
+		}
 	}
 	
 	static ObjectPoolManager opm = new ObjectPoolManager();

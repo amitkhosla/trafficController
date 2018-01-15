@@ -55,7 +55,7 @@ public abstract class ParallelTask<T> extends Task {
 	}
 	
 	@Override
-	protected void execute() {
+	protected void executeInternal() {
 		executeCurrentTask();
 	}
 	

@@ -132,6 +132,17 @@ public class TaskExecutor {
 		return executor;
 	}
 	
+	/**
+	 * Get Task Executor with defined number of consumers.
+	 * @param fastConsumers Number of fast consumer
+	 * @param slowConsumers Number of slow consumer
+	 * @return TaskExecutor
+	 */
+	public TaskExecutor getTaskExecutorWithDefinedNumberOfConsumers(int fastConsumers, int slowConsumers) {
+		TaskExecutor executor = new TaskExecutor();
+		executor.setNumberOfFastQueueConsumers(fastConsumers).setNumberOfSlowQueueConsumers(slowConsumers).init();
+		return executor;
+	}
 
 	private int getConsumersForProcessors(int processors, int factorForFastQueue) {
 		int count = processors * factorForFastQueue / 100;

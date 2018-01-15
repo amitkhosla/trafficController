@@ -1,4 +1,4 @@
-package org.ak.trafficController.otherPkg;
+package org.ak.trafficController.examples;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +16,11 @@ public class DummyProgram {
 		for (int i=0;i<max; i++) {
 			int k = i;
 			Thread thread = new Thread(()->{
-				process(taskExecutor, k, clq);
+				try {
+					process(taskExecutor, k, clq);
+				} catch (Throwable e) {
+					e.printStackTrace();
+				}
 			//	System.out.println("done with " + Thread.currentThread());
 			});
 			threads.add(thread);
@@ -44,7 +48,7 @@ public class DummyProgram {
 		System.out.println("Issue with " + aa.get());
 	}
 
-	protected static void process(TaskExecutor taskExecutor, int i, ConcurrentLinkedQueue<Integer> clq) {
+	protected static void process(TaskExecutor taskExecutor, int i, ConcurrentLinkedQueue<Integer> clq) throws Throwable {
 		taskExecutor.of(()->{System.out.println("starting " + i);}).thenParallel(()->23, ()->32).join(l->{
 			int total = 0;
 			for(int item : l) {
