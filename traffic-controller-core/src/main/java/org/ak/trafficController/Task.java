@@ -28,6 +28,7 @@ public abstract class Task implements Poolable {
 	protected Task nextTask;
 	protected Task exceptionTask;
 	private boolean shouldThrowException;
+	protected boolean shouldContinueOnException;
 	
 	@Override
 	public void clean() {
@@ -73,7 +74,7 @@ public abstract class Task implements Poolable {
 				shouldThrow = this.shouldThrowException;
 				this.exceptionTask.execute();
 			}
-			if (!shouldThrow) {
+			if (!shouldThrow && shouldContinueOnException) {
 				executeNextTask();
 				return;
 			}
@@ -84,7 +85,7 @@ public abstract class Task implements Poolable {
 
 	protected void throwIfRequired(Throwable throwable, boolean shouldThrow) {
 		Task task = this;
-		while (Objects.isNull(task.nextTask)) {
+		while (!Objects.isNull(task.nextTask)) {
 			task = task.nextTask;
 		}
 		if (task.taskType == TaskType.NOTIFY) {
@@ -96,6 +97,16 @@ public abstract class Task implements Poolable {
 		cleanAllRemainingTasks();
 	}
 
+	public Task shouldThrowExceptionIfOccurs() {
+		this.shouldThrowException = true;
+		return this;
+	}
+	
+	public Task shouldContinueNextTaskIfExceptionOccurs() {
+		this.shouldContinueOnException = true;
+		return this;
+	}
+	
 	protected void cleanAllRemainingTasks() {
 		List<Task> tasks = new ArrayList<>(); 
 		Task task = this;
@@ -153,6 +164,22 @@ public abstract class Task implements Poolable {
 		Supplier<T> supplier = ()->exceptionHandler.apply(throwable);
 		ReturningTask<T> task = ReturningTask.getFromPool(uniqueNumber, supplier, TaskType.NORMAL);
 		setExceptionTaskParams(task);
+		return task;
+	}
+	
+	public ExecutableTask onExceptionPerfomAndAlsoContinueOtherTasks(Consumer<Throwable> exceptionHandler) {
+		Runnable runnable = ()-> exceptionHandler.accept(this.throwable);
+		ExecutableTask task = ExecutableTask.getFromPool(uniqueNumber,runnable, TaskType.NORMAL);
+		setExceptionTaskParams(task);
+		task.shouldContinueOnException = true;
+		return task;
+	}
+	
+	public <T> ReturningTask<T> onExceptionGetAndAlsoContinueOtherTasks(Function<Throwable, T> exceptionHandler) {
+		Supplier<T> supplier = ()->exceptionHandler.apply(throwable);
+		ReturningTask<T> task = ReturningTask.getFromPool(uniqueNumber, supplier, TaskType.NORMAL);
+		setExceptionTaskParams(task);
+		
 		return task;
 	}
 
