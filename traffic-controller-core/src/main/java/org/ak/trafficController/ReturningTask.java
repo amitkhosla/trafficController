@@ -1,5 +1,8 @@
 package org.ak.trafficController;
 
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -33,6 +36,30 @@ public class ReturningTask<T> extends Task {
 	public ExecutableTask thenConsume(Consumer<T> consumer) {
 		ExecutableTask t = thenConsume(consumer, TaskType.NORMAL);
 		return t;
+	}
+	
+	public ParallelExecutingTask thenConsumeMultiple(Consumer<T>... consumers) {
+		AtomicBoolean retrieved = new AtomicBoolean(false);
+		AtomicReference<T> data = new AtomicReference<>(null);
+		Runnable[] runnables = new Runnable[consumers.length];
+		for (int i=0;i<consumers.length; i++) {
+			Consumer<T> consumer = consumers[i];
+			runnables[i] = ()-> {
+					if (!retrieved.get()) {
+						synchronized (retrieved) {
+							if (!retrieved.get()) {	
+								T val = this.get();
+								data.set(val);
+								retrieved.set(true);
+							}
+						}
+					}
+					consumer.accept(data.get());
+			};
+		}
+		ParallelExecutingTask<T> parallelTask = ParallelExecutingTask.getFromPool(this.uniqueNumber, TaskType.NORMAL, runnables);
+		then(parentTask);
+		return parallelTask;
 	}
 
 	protected ExecutableTask thenConsume(Consumer<T> consumer, TaskType tp) {

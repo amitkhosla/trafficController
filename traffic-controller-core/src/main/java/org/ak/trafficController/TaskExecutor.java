@@ -123,7 +123,7 @@ public class TaskExecutor {
 	 * @param factorForSlowQueuePercent Slow thread percentage
 	 * @return TaskExecutor
 	 */
-	public TaskExecutor getTaskExecutorWithConsumersMultipleOfCores(int factorForFastQueuePercent, int factorForSlowQueuePercent) {
+	public static TaskExecutor getTaskExecutorWithConsumersMultipleOfCores(int factorForFastQueuePercent, int factorForSlowQueuePercent) {
 		TaskExecutor executor = new TaskExecutor();
 		int processors = Runtime.getRuntime().availableProcessors();
 		executor.setNumberOfFastQueueConsumers(getConsumersForProcessors(processors, factorForFastQueuePercent));
@@ -138,17 +138,22 @@ public class TaskExecutor {
 	 * @param slowConsumers Number of slow consumer
 	 * @return TaskExecutor
 	 */
-	public TaskExecutor getTaskExecutorWithDefinedNumberOfConsumers(int fastConsumers, int slowConsumers) {
+	public static TaskExecutor getTaskExecutorWithDefinedNumberOfConsumers(int fastConsumers, int slowConsumers) {
 		TaskExecutor executor = new TaskExecutor();
 		executor.setNumberOfFastQueueConsumers(fastConsumers).setNumberOfSlowQueueConsumers(slowConsumers).init();
 		return executor;
 	}
 
-	private int getConsumersForProcessors(int processors, int factorForFastQueue) {
+	protected static int getConsumersForProcessors(int processors, int factorForFastQueue) {
 		int count = processors * factorForFastQueue / 100;
 		if (count == 0) {
 			count = 1;
 		}
 		return count;
+	}
+	
+	public void shutdown() {
+		this.fastChannel.shutdown();
+		this.slowChannel.shutdown();
 	}
 }
