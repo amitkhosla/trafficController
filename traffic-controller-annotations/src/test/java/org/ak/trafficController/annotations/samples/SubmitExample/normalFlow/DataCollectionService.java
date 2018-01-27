@@ -19,13 +19,14 @@ public class DataCollectionService {
 	DataType3DAOService daoService3;
 	
 	@Controlled
-	public void getData(int id) {
+	public double getData(int id) {
 		DataType1 dt1 = daoService1.getDataTypeService(id);
 		DataType2 dt2 = daoService2.getDataType2(dt1.getStringVal1());
 		DataType3 dt3 = daoService3.getDataType3(dt1.getStringVal1());
-		
+		System.out.println("returning data");
 		//some join operation
-		
+		return (dt2.someOtherValue + dt2.value) * (dt3.getValue1() + dt3.getValue2()); 
+				
 	}
 	
 	public void betterGetData(int id) {

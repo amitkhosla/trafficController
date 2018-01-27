@@ -63,6 +63,13 @@ public class TaskExecutor {
 		return task;
 	}
 	
+	public ExecutableTask slowOf(Runnable runnable) {
+		ExecutableTask task = ExecutableTask.getFromPool(ti.incrementAndGet(),runnable, TaskType.NORMAL);
+		task.taskExecutor = this;
+		task.taskType = TaskType.SLOW;
+		return task;
+	}
+	
 	public <T> ReturningTask<T> of(Supplier<T> supplier) {
 		ReturningTask<T> rt =ReturningTask.getFromPool(ti.incrementAndGet(),supplier, TaskType.NORMAL);
 		rt.taskExecutor = this;

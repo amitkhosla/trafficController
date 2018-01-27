@@ -103,6 +103,9 @@ public class TaskHelper {
 
 	public TaskExecutorDetails getTaskExecutor(Controlled parallel, ProceedingJoinPoint joinPoint) {
 		String taskExecutorName = parallel.executorName();
+		if (parallel.maxConsumer().equals("0") && parallel.maxSlowConsumer().equals("0") && taskExecutorName.isEmpty()) {
+			taskExecutorName = Constants.DEFAULT;
+		}
 		TaskExecutor taskExecutor = getExecutorByName(taskExecutorName);
 		if (StringUtils.isEmpty(taskExecutorName)) {
 			taskExecutorName = getNameFromJoinPointMethodSignature(joinPoint);
