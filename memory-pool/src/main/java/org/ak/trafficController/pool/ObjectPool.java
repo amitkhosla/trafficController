@@ -30,6 +30,8 @@ public class ObjectPool<T> {
 		T obj = pool.poll();
 		if (obj == null) {
 			return generator.get();
+		} else {
+			count.decrementAndGet();
 		}
 		return obj;
 	}
