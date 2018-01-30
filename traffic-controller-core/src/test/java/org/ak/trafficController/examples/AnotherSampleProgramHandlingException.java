@@ -5,7 +5,8 @@ import org.ak.trafficController.TaskExecutor;
 public class AnotherSampleProgramHandlingException {
 	
 	public static void main(String[] args) throws Throwable {
-		way4();
+		way5();
+		//way4();
 		//way2();
 	}
 	
@@ -23,6 +24,20 @@ public class AnotherSampleProgramHandlingException {
 	}
 
 
+	protected static void way5() throws Throwable {
+		try {
+			System.out.println("way 3");
+			TaskExecutor.getInstance()
+			.of(AnotherSampleProgramHandlingException::doSomething)
+			.then(AnotherSampleProgramHandlingException::throwException)
+			.then(AnotherSampleProgramHandlingException::doSomethingElse).start();
+			System.out.println("done...");
+		} catch (Exception e) {
+			System.out.println("exception caught");
+			e.printStackTrace();//this should not throw any exception.
+		}
+	}
+	
 	protected static void way3() throws Throwable {
 		try {
 			System.out.println("way 3");

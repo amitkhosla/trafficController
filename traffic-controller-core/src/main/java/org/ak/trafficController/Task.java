@@ -210,10 +210,14 @@ public abstract class Task implements Poolable {
 			} catch (InterruptedException e) {
 				logger.log(Level.WARNING, "could not wait....", e);
 			}
-			boolean shouldThrow = false;
-			if (Objects.isNull(this.exceptionTask)) {
-				shouldThrow = true;
-			} 
+			
+			if (!Objects.isNull(task.throwable)) {
+				throw task.throwable;
+			}
+		
+			if (!task.executed) {
+				throw new RuntimeException("Could not process in time");
+			}
 		}
 	}
 
