@@ -75,10 +75,10 @@ public class AnnotationSupportImpl {
 		};
 		switch (parallel.taskType()) {
 		case NORMAL:
-			taskExecutorDetail.getTaskExecutor().of(taskToWorkOn).start();
+			taskExecutorDetail.getTaskExecutor().of(taskToWorkOn).start(parallel.waitTimeInMilliSeconds());
 			break;
 		case SLOW:
-			taskExecutorDetail.getTaskExecutor().slowOf(taskToWorkOn).start();
+			taskExecutorDetail.getTaskExecutor().slowOf(taskToWorkOn).start(parallel.waitTimeInMilliSeconds());
 		}
 		Throwable throwable = throwableRef.get();
 		if (throwable != null) {

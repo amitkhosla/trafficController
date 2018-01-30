@@ -52,4 +52,11 @@ public @interface Controlled {
 	 * @return Task type.
 	 */
 	TaskType taskType() default TaskType.NORMAL;
+	
+	/**
+	 * This defines the time for which this task execution should be waited for before declaring it not working and throwing exception.
+	 * 300,000 milliseconds (5 minutes) is default value. 
+	 * @return wait time in milliseconds
+	 */
+	int waitTimeInMilliSeconds() default 5*60*1000;
 }
