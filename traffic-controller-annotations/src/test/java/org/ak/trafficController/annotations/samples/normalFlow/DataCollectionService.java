@@ -1,4 +1,4 @@
-package org.ak.trafficController.annotations.samples.SubmitExample.normalFlow;
+package org.ak.trafficController.annotations.samples.normalFlow;
 
 import javax.inject.Inject;
 import javax.inject.Named;

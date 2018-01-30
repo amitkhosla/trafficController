@@ -1,4 +1,4 @@
-package org.ak.trafficController.annotations.samples.SubmitExample;
+package org.ak.trafficController.annotations.samples.submitExample;
 
 import javax.inject.Named;
 

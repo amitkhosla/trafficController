@@ -1,4 +1,4 @@
-package org.ak.trafficController.annotations.samples.SubmitExample;
+package org.ak.trafficController.annotations.samples.normalFlow;
 
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;

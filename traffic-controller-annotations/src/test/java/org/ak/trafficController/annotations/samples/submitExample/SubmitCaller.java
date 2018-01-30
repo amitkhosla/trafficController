@@ -1,14 +1,12 @@
-package org.ak.trafficController.annotations.samples.SubmitExample.normalFlow;
+package org.ak.trafficController.annotations.samples.submitExample;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-public class NormalFlowCaller {
-
+public class SubmitCaller {
 	public static void main(String[] args) {
 		ApplicationContext context = new AnnotationConfigApplicationContext(ConfigClass.class);
-		ControllerClass service1 = context.getBean(ControllerClass.class);
-		service1.doSomeOperation();
+		SubmitSample service1 = context.getBean(SubmitSample.class);
+		service1.doSomething();
 	}
-
 }

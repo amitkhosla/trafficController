@@ -1,4 +1,4 @@
-package org.ak.trafficController.annotations.samples.SubmitExample;
+package org.ak.trafficController.annotations.samples.submitExample;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
