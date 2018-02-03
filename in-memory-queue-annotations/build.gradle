@@ -1,0 +1,10 @@
+dependencies {
+	compile project(':in-memory-queue')
+	compile group: 'org.springframework', name: 'spring-aspects', version: '5.0.2.RELEASE'
+	compile group: 'org.springframework', name: 'spring-core', version: '5.0.2.RELEASE'
+	compile 'org.springframework:spring-context:5.0.2.RELEASE'
+	
+	compile group: 'javax.inject', name: 'javax.inject', version: '1'
+	
+	testCompile group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
+}
