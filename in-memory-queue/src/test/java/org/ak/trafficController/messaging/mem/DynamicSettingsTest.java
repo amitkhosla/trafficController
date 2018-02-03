@@ -232,7 +232,7 @@ public class DynamicSettingsTest {
 		};
 		Assert.assertFalse(ds.handleStopAddingAtThreshold());
 		
-		ds.setShouldPauseSenderTillThresholdNotRecovered(true);
+		ds.setShouldRetrySenderTillThresholdNotRecovered(true);
 		Assert.assertFalse(ds.handleStopAddingAtThreshold());
 		ab.set(true);
 		Assert.assertTrue(ds.handleStopAddingAtThreshold());

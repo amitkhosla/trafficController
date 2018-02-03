@@ -7,6 +7,6 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @Configuration
 @ComponentScan(basePackages="org.ak")
 @EnableAspectJAutoProxy
-public class ConfigClass {
+public class ConfigClassNormal {
 	
 }

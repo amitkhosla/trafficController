@@ -3,6 +3,7 @@
  */
 package org.ak.trafficController.messaging.mem;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -130,7 +131,7 @@ public class InMemoryQueue<T> {
 		this.inMemoryQueue.shutdown();
 	}
 
-	public void addAllFromList(List<T> input) {
+	public void addAllFromList(Collection<T> input) {
 		this.inMemoryQueue.add(input);
 	}
 

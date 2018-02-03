@@ -1,6 +1,7 @@
 package org.ak.trafficController.messaging.mem;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Queue;
 import java.util.function.Consumer;
@@ -53,7 +54,7 @@ public class DynamicSettings<T> { //We can later think of making it decorator
 	private boolean shouldStopAddingAtThreshold;
 	private boolean shouldThrowExceptionWhenThresholdAtAdd;
 	
-	private boolean shouldPauseSenderTillThresholdNotRecovered;
+	private boolean shouldRetrySenderTillThresholdNotRecovered;
 	private Long waitForRetryThresholdLimit=100L;//milliseconds to wait for
 	private Long numberOfRetriesToWait=100L; 
 	private boolean shouldThrowExceptionPostRetry;
@@ -130,11 +131,11 @@ public class DynamicSettings<T> { //We can later think of making it decorator
 		this.shouldStopAddingAtThreshold = shouldStopAddingAtThreshold;
 		return this;
 	}
-	public Boolean getShouldPauseSenderTillThresholdNotRecovered() {
-		return shouldPauseSenderTillThresholdNotRecovered;
+	public Boolean getShouldRetrySenderTillThresholdNotRecovered() {
+		return shouldRetrySenderTillThresholdNotRecovered;
 	}
-	public DynamicSettings<T> setShouldPauseSenderTillThresholdNotRecovered(Boolean shouldPauseSenderTillThresholdNotRecovered) {
-		this.shouldPauseSenderTillThresholdNotRecovered = shouldPauseSenderTillThresholdNotRecovered;
+	public DynamicSettings<T> setShouldRetrySenderTillThresholdNotRecovered(Boolean shouldPauseSenderTillThresholdNotRecovered) {
+		this.shouldRetrySenderTillThresholdNotRecovered = shouldPauseSenderTillThresholdNotRecovered;
 		return this;
 	}
 	public Long getWaitForRetryThresholdLimit() {
@@ -217,8 +218,9 @@ public class DynamicSettings<T> { //We can later think of making it decorator
 		return shouldThrowExceptionWhenThresholdAtAdd;
 	}
 
-	public void setShouldThrowExceptionWhenThresholdAtAdd(Boolean shouldThrowExceptionWhenThresholdAtAdd) {
+	public DynamicSettings<T> setShouldThrowExceptionWhenThresholdAtAdd(Boolean shouldThrowExceptionWhenThresholdAtAdd) {
 		this.shouldThrowExceptionWhenThresholdAtAdd = shouldThrowExceptionWhenThresholdAtAdd;
+		return this;
 	}
 	
 	public boolean addItemInQueue(T item) {
@@ -233,7 +235,7 @@ public class DynamicSettings<T> { //We can later think of making it decorator
 		return false;
 	}
 	
-	public boolean addItemsInQueue(List<T> list) {
+	public boolean addItemsInQueue(Collection<T> list) {
 		return processAddItem(this.queue::addAllFromList, list);
 	}
 
@@ -256,7 +258,7 @@ public class DynamicSettings<T> { //We can later think of making it decorator
 	 * @return true if post retries items in queue lowers to less than threshold 
 	 */
 	protected boolean handleStopAddingAtThreshold() {
-		if (!shouldPauseSenderTillThresholdNotRecovered) {
+		if (!shouldRetrySenderTillThresholdNotRecovered) {
 			log.fine("wait is not applicable. Returning false");
 			return false;
 		}

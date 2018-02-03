@@ -1,5 +1,6 @@
 package org.ak.trafficController.messaging.mem;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -93,7 +94,7 @@ public class InMemoryQueueManager {
 	 * @param items
 	 * @return
 	 */
-	public <T> boolean addItems(String queueName, List<T> items) {
+	public <T> boolean addItems(String queueName, Collection<T> items) {
 		DynamicSettings<T> dynamicSetting = dynamicSettings.get(queueName);
 		if (dynamicSetting != null) {
 			return dynamicSetting.addItemsInQueue(items);

@@ -293,7 +293,7 @@ public class GenericInMemoryQueue<T> {
 	 * @param items
 	 *            The {@link List} of items to add
 	 */
-	public void add(List<T> items) {
+	public void add(Collection<T> items) {
 		dataQueue.addAll(items);
 		numberOfItemsInQueue.addAndGet(items.size());
 		notifyConsumers();
