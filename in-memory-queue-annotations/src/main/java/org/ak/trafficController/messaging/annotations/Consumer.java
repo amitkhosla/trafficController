@@ -102,6 +102,8 @@ public @interface Consumer {
 
 	boolean batch() default false;
 
+	int batchSize() default 10;
+
 
 	//boolean shouldPauseSenderTillThresholdNotRecovered() default false;
 }

@@ -13,4 +13,8 @@ public @interface Queued {
 	String name() default "";
 
 	boolean itemInCollection() default false;
+	
+	Class consumerClass() default Queued.class;
+	String consumerMethod() default "";
+	boolean listConsumer() default false;
 }

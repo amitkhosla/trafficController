@@ -10,12 +10,12 @@ import org.ak.trafficController.messaging.annotations.Queued;
 @Named
 public class MyProducer {
 	//@Controlled
-	@Queued
+	@Queued(consumerClass=MyConsumer.class, consumerMethod="doSomething")
 	public int produce(int k) {
 		return k*5;
 	}
 	
-	@Queued(itemInCollection=true)
+	@Queued(itemInCollection=true, consumerClass=MyConsumer.class, consumerMethod="processNumberList", listConsumer=true)
 	public List<Integer> produceList(int k) {
 		ArrayList<Integer> list = new ArrayList<>();
 		for (int i=0;i<5;i++) {
@@ -31,4 +31,24 @@ public class MyProducer {
 		}
 		return list;
 	}
+	
+	@Queued(consumerClass=MyConsumer.class, consumerMethod="doSomething")
+	public MyOtherClass produceMyClass(int k) {
+		return (MyOtherClass) new MyOtherClass().setSomeData(k*5);
+	}
+	
+	@Queued(name="twice", consumerClass=MyProducer.class, consumerMethod="produceThrice")
+	public Integer produceTwice(int k) {
+		int output = k+2;
+		System.out.println(output + Thread.currentThread().getName());
+		return output;
+	}
+	
+	@Queued(name="thrice", consumerClass=MyProducer.class, consumerMethod="produceTwice")
+	public Integer produceThrice(int k) {
+		int output = k+3;
+		System.out.println(output + Thread.currentThread().getName());
+		return output;
+	}
+	
 }

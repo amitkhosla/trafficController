@@ -17,4 +17,17 @@ public class MyConsumer {
 	public void processNumberList(Collection<Integer> numbers) {
 		System.out.println(numbers + " processed from " + Thread.currentThread().getName() );
 	}
+	
+	public void doSomething(Integer val) {
+		System.out.println("inside do somethng with " + val);
+	}
+	
+	public void doSomething(Double val) {
+		System.out.println("inside do somethng with " + val);
+	}
+
+	@Consumer(numberOfConsumers=2)
+	public void doSomething(MyOtherClass val) {
+		System.out.println("inside do somethng with " + val);
+	}
 }
