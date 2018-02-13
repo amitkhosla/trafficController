@@ -22,6 +22,13 @@ public class InMemoryQueueManager {
 		setConsumers(consumer, numberOfConsumers, queue);
 	}
 	
+	public void setBatchSize(String queueName, int batchSize) {
+		InMemoryQueue queue = queues.get(queueName);
+		if (queue != null) {
+			queue.setBatchSize(batchSize);
+		}
+	}
+	
 	public <T> void initializeForBatch(String queueName, Consumer<List<T>> consumer, int numberOfConsumers) {
 		InMemoryQueue<T> queue = registerQueueIfAbsent(queueName);
 		setBatchConsumers(consumer, numberOfConsumers, queue);
@@ -67,6 +74,27 @@ public class InMemoryQueueManager {
 			int numberOfConsumers, InMemoryQueue<T> queue) {
 		queue.setBatchConsumer(consumer);
 		queue.setBatchConsumerCount(numberOfConsumers);
+	}
+	
+	
+	public <T> boolean addAndRegisterIfRequired(String queueName, T item) {
+		DynamicSettings<T> dynamicSetting = dynamicSettings.get(queueName);
+		if (dynamicSetting != null) {
+			return dynamicSetting.addItemInQueue(item);
+		}
+		InMemoryQueue<T> imq = registerQueueIfAbsent(queueName);
+		imq.add(item);
+		return true;
+	}
+	
+	public <T> boolean addAndRegisterIfRequiredForCollection(String queueName, Collection<T> item) {
+		DynamicSettings<T> dynamicSetting = dynamicSettings.get(queueName);
+		if (dynamicSetting != null) {
+			return dynamicSetting.addItemsInQueue(item);
+		}
+		InMemoryQueue<T> imq = registerQueueIfAbsent(queueName);
+		imq.addAllFromList(item);
+		return true;
 	}
 	
 	/**
@@ -139,7 +167,25 @@ public class InMemoryQueueManager {
 	 * @return Number of consumers
 	 */
 	public Integer getDirectConsumerCount(String queueName) {
-		return queues.get(queueName).getDirectConsumerCount();
+		InMemoryQueue inMemoryQueue = queues.get(queueName);
+		if (inMemoryQueue == null) {
+			return 0;
+		}
+		return inMemoryQueue.isDirectConsumerSet() ? inMemoryQueue.getDirectConsumerCount() : 0;
+	}
+	
+	
+	/**
+	 * Get number of batch consumers currently attached to queue.
+	 * @param queueName Name of queue for which consumers count is required
+	 * @return Number of consumers
+	 */
+	public Integer getBatchConsumerCount(String queueName) {
+		InMemoryQueue inMemoryQueue = queues.get(queueName);
+		if (inMemoryQueue == null) {
+			return 0;
+		}
+		return inMemoryQueue.isBatchConsumerSet() ? inMemoryQueue.getBatchConsumerCount() : 0;
 	}
 
 	public void setConsumerCount(String queueName, int consumerCount) {

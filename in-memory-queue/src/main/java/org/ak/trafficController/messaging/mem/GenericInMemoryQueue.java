@@ -34,6 +34,11 @@ public class GenericInMemoryQueue<T> {
 	private String queueName;
 
 	/**
+	 * This is the time for which consumer wait for notification before retrying. This is for removing any missed signal.
+	 */
+	int waitTimeout = 1000;
+
+	/**
 	 * The value contains the batch size for batch consumers.
 	 */
 	private int batchSize = 10;
@@ -177,7 +182,7 @@ public class GenericInMemoryQueue<T> {
 				if (consumerList.contains(consumerName)) {
 					try {
 						synchronized (dataQueue) {
-							dataQueue.wait();
+							dataQueue.wait(waitTimeout);
 						}
 					} catch (InterruptedException e) {
 						logError("Interrupted exception occured in channel", e);
@@ -381,6 +386,15 @@ public class GenericInMemoryQueue<T> {
 	public void removeAllBatchConsumers() {
 		this.batchConsumersList.clear();
 		doNotify();
+	}
+
+	public int getWaitTimeout() {
+		return waitTimeout;
+	}
+
+	public GenericInMemoryQueue<T> setWaitTimeout(int waitTimeout) {
+		this.waitTimeout = waitTimeout;
+		return this;
 	}
 
 }
