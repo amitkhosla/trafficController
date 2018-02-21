@@ -16,7 +16,7 @@ public class TaskExecutorsInUseThreadLocal {
 		list.add(name);
 	}
 	
-	public static void removeTaskExcutor(String name) {
+	public static void removeTaskExecutor(String name) {
 		List<String> list = taskExecutorsUsed.get();
 		if (!Objects.isNull(list)) {
 			list.remove(name);
