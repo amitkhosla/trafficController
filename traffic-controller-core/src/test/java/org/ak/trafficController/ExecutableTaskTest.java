@@ -10,9 +10,9 @@ public class ExecutableTaskTest {
 
 	
 	@Test
-	public void testExecutableTask() {
+	public void testExecutableTask() throws Throwable {
 		AtomicInteger ai = new AtomicInteger();
-		Runnable runnable = ()->{ai.incrementAndGet();};
+		RunnableToBeExecuted runnable = ()->{ai.incrementAndGet();};
 		ExecutableTask et = ExecutableTask.getFromPool(234, runnable, TaskType.NORMAL);
 		Assert.assertTrue(et.taskType == TaskType.NORMAL);
 		Assert.assertEquals(234,et.uniqueNumber.intValue());

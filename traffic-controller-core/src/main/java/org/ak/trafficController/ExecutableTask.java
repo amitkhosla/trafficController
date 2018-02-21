@@ -4,7 +4,7 @@ import org.ak.trafficController.pool.ObjectPoolManager;
 
 public class ExecutableTask extends Task {
 
-	static ExecutableTask getFromPool(int unique, Runnable runnable, TaskType taskType) {
+	static ExecutableTask getFromPool(int unique, RunnableToBeExecuted runnable, TaskType taskType) {
 		ExecutableTask et = ObjectPoolManager.getInstance().getFromPool(ExecutableTask.class, ()->new ExecutableTask(unique, runnable, taskType));
 		et.taskType = taskType;
 		et.startingTask = et;
@@ -13,9 +13,9 @@ public class ExecutableTask extends Task {
 		return et;
 	}
 	
-	private Runnable runnable;
+	private RunnableToBeExecuted runnable;
 
-	public ExecutableTask(int unique, Runnable runnable, TaskType taskType) {
+	public ExecutableTask(int unique, RunnableToBeExecuted runnable, TaskType taskType) {
 		super(unique, taskType);
 		this.runnable  = runnable;
 	}
@@ -26,7 +26,7 @@ public class ExecutableTask extends Task {
 	}
 
 	@Override
-	protected void executeCurrentTask() {
+	protected void executeCurrentTask() throws Throwable {
 		runnable.run();
 	}
 	

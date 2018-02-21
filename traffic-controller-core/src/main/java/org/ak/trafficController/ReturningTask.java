@@ -41,7 +41,7 @@ public class ReturningTask<T> extends Task {
 	public ParallelExecutingTask thenConsumeMultiple(Consumer<T>... consumers) {
 		AtomicBoolean retrieved = new AtomicBoolean(false);
 		AtomicReference<T> data = new AtomicReference<>(null);
-		Runnable[] runnables = new Runnable[consumers.length];
+		RunnableToBeExecuted[] runnables = new RunnableToBeExecuted[consumers.length];
 		for (int i=0;i<consumers.length; i++) {
 			Consumer<T> consumer = consumers[i];
 			runnables[i] = ()-> {

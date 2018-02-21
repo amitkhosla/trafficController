@@ -38,7 +38,12 @@ public class ParallelTaskTest {
 		ParallelTask pt = new ParallelTask(456, TaskType.NORMAL) {
 			@Override
 			public void executeInternalTask(Task task) {
-				task.executeCurrentTask();
+				try {
+					task.executeCurrentTask();
+				} catch (Throwable e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 			@Override
 			protected void postTaskRun() {

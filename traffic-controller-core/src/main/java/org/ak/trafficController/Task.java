@@ -47,7 +47,7 @@ public abstract class Task implements Poolable {
 		return sb.toString();
 	}
 
-	abstract protected void executeCurrentTask();
+	abstract protected void executeCurrentTask() throws Throwable;
 	
 	public Task(int unique,TaskType taskType) {
 		startingTask = this;
@@ -55,7 +55,7 @@ public abstract class Task implements Poolable {
 		this.uniqueNumber = unique;
 	}
 	
-	protected void executeInternal() {
+	protected void executeInternal() throws Throwable {
 		executeCurrentTask();
 		executeNextTask();
 	}
@@ -122,7 +122,10 @@ public abstract class Task implements Poolable {
 
 	protected void executeNextTask() {
 		if (nextTask != null) {
-			taskExecutor.enque(nextTask);
+			if (nextTask.taskExecutor == null) {
+				nextTask.taskExecutor = taskExecutor;
+			}
+			nextTask.taskExecutor.enque(nextTask);
 		}
 		if (canSendBackToPool()) {
 			this.addBackToPool();
@@ -154,7 +157,7 @@ public abstract class Task implements Poolable {
 	}
 	
 	public ExecutableTask onException(Consumer<Throwable> exceptionHandler) {
-		Runnable runnable = ()-> exceptionHandler.accept(this.throwable);
+		RunnableToBeExecuted runnable = ()-> exceptionHandler.accept(this.throwable);
 		ExecutableTask task = ExecutableTask.getFromPool(uniqueNumber,runnable, TaskType.NORMAL);
 		setExceptionTaskParams(task);
 		return task;
@@ -168,7 +171,7 @@ public abstract class Task implements Poolable {
 	}
 	
 	public ExecutableTask onExceptionPerfomAndAlsoContinueOtherTasks(Consumer<Throwable> exceptionHandler) {
-		Runnable runnable = ()-> exceptionHandler.accept(this.throwable);
+		RunnableToBeExecuted runnable = ()-> exceptionHandler.accept(this.throwable);
 		ExecutableTask task = ExecutableTask.getFromPool(uniqueNumber,runnable, TaskType.NORMAL);
 		setExceptionTaskParams(task);
 		task.shouldContinueOnException = true;
@@ -259,7 +262,7 @@ public abstract class Task implements Poolable {
 		return task;
 	}
 	
-	public Task then(Runnable runnable) {
+	public Task then(RunnableToBeExecuted runnable) {
 		ExecutableTask task = ExecutableTask.getFromPool(uniqueNumber,runnable, TaskType.NORMAL);
 		then(task);
 		return task;
@@ -271,7 +274,7 @@ public abstract class Task implements Poolable {
 		return task;
 	}
 	
-	public Task thenSlow(Runnable runnable) {
+	public Task thenSlow(RunnableToBeExecuted runnable) {
 		ExecutableTask task = ExecutableTask.getFromPool(uniqueNumber, runnable, TaskType.SLOW);
 		then(task);
 		return task;
@@ -282,7 +285,7 @@ public abstract class Task implements Poolable {
 		if (!Objects.isNull(collection)) {
 			size = collection.size();
 		}
-		Runnable[] runnables = new Runnable[size];
+		RunnableToBeExecuted[] runnables = new RunnableToBeExecuted[size];
 		if (size > 0) {
 			int i =0;
 			for (T item : collection) {
@@ -297,7 +300,7 @@ public abstract class Task implements Poolable {
 		if (!Objects.isNull(consumersToWorkOn)) {
 			size = consumersToWorkOn.size();
 		}
-		Runnable[] runnables = new Runnable[size];
+		RunnableToBeExecuted[] runnables = new RunnableToBeExecuted[size];
 		if (size > 0) {
 			int i =0;
 			for (Consumer<T> consumer : consumersToWorkOn) {
@@ -312,7 +315,7 @@ public abstract class Task implements Poolable {
 		if (!Objects.isNull(collection)) {
 			size = collection.size();
 		}
-		Runnable[] runnables = new Runnable[size];
+		RunnableToBeExecuted[] runnables = new RunnableToBeExecuted[size];
 		if (size > 0) {
 			int i =0;
 			for (T item : collection) {
@@ -345,7 +348,7 @@ public abstract class Task implements Poolable {
 		if (!Objects.isNull(consumersToWorkOn)) {
 			size = consumersToWorkOn.size();
 		}
-		Runnable[] runnables = new Runnable[size];
+		RunnableToBeExecuted[] runnables = new RunnableToBeExecuted[size];
 		if (size > 0) {
 			int i =0;
 			for (Consumer<T> consumer : consumersToWorkOn) {
@@ -355,7 +358,7 @@ public abstract class Task implements Poolable {
 		return thenParallelWithoutWait(tp, runnables);
 	}
 	
-	public <T> ParallelExecutingTask<T> thenParallelWithoutWait(TaskType tp, Runnable... runnables) {
+	public <T> ParallelExecutingTask<T> thenParallelWithoutWait(TaskType tp, RunnableToBeExecuted... runnables) {
 		ParallelExecutingTask parallelExecutingTask = ParallelExecutingTask.getFromPool(uniqueNumber, tp, runnables);
 		UnlinkedTask task = new UnlinkedTask(uniqueNumber, tp, parallelExecutingTask);
 		includeUnlinkTask(parallelExecutingTask, task);
@@ -367,19 +370,19 @@ public abstract class Task implements Poolable {
 		parallelExecutingTask.taskExecutor = taskExecutor;
 	}
 	
-	public <T> ParallelExecutingTask<T> thenParallelWithoutWait(Runnable... runnables) {
+	public <T> ParallelExecutingTask<T> thenParallelWithoutWait(RunnableToBeExecuted... runnables) {
 		return thenParallelWithoutWait(TaskType.NORMAL, runnables);
 	}
 	
-	public <T> ParallelExecutingTask<T> thenParallelWithoutWaitSlow(Runnable... runnables) {
+	public <T> ParallelExecutingTask<T> thenParallelWithoutWaitSlow(RunnableToBeExecuted... runnables) {
 		return thenParallelWithoutWait(TaskType.SLOW, runnables);
 	}
 
-	public <T> ParallelExecutingTask<T> thenParallel(Runnable... runnables) {
+	public <T> ParallelExecutingTask<T> thenParallel(RunnableToBeExecuted... runnables) {
 		return thenParallel(TaskType.NORMAL, runnables);
 	}
 
-	public <T> ParallelExecutingTask<T> thenParallel(TaskType tp, Runnable... runnables) {
+	public <T> ParallelExecutingTask<T> thenParallel(TaskType tp, RunnableToBeExecuted... runnables) {
 		ParallelExecutingTask<T> parallelExecutingTask = ParallelExecutingTask.getFromPool(uniqueNumber, tp, runnables);
 		then(parallelExecutingTask);
 		return parallelExecutingTask;
@@ -403,7 +406,7 @@ public abstract class Task implements Poolable {
 		return parallelReturningTask;
 	}
 	
-	public <T> ParallelExecutingTask<T> thenParallelSlow(Runnable... runnables) {
+	public <T> ParallelExecutingTask<T> thenParallelSlow(RunnableToBeExecuted... runnables) {
 		return thenParallel(TaskType.SLOW, runnables);
 	}
 	
@@ -421,5 +424,9 @@ public abstract class Task implements Poolable {
 	@Override
 	public String toString() {
 		return "Task [type: " + this.getClass() + ", uniqueNumber: " + uniqueNumber + ", taskType : " + taskType + "]";
+	}
+
+	public TaskExecutor getTaskExecutor() {
+		return taskExecutor;
 	}
 }

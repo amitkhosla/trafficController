@@ -57,13 +57,13 @@ public class TaskExecutor {
 	
 	AtomicInteger ti = new AtomicInteger();
 
-	public ExecutableTask of(Runnable runnable) {
+	public ExecutableTask of(RunnableToBeExecuted runnable) {
 		ExecutableTask task = ExecutableTask.getFromPool(ti.incrementAndGet(),runnable, TaskType.NORMAL);
 		task.taskExecutor = this;
 		return task;
 	}
 	
-	public ExecutableTask slowOf(Runnable runnable) {
+	public ExecutableTask slowOf(RunnableToBeExecuted runnable) {
 		ExecutableTask task = ExecutableTask.getFromPool(ti.incrementAndGet(),runnable, TaskType.NORMAL);
 		task.taskExecutor = this;
 		task.taskType = TaskType.SLOW;
@@ -76,7 +76,7 @@ public class TaskExecutor {
 		return rt;
 	}
 	
-	public ParallelExecutingTask parallelExecutingTasks(Runnable... runnables) {
+	public ParallelExecutingTask parallelExecutingTasks(RunnableToBeExecuted... runnables) {
 		ParallelExecutingTask task = ParallelExecutingTask.getFromPool( ti.incrementAndGet(), TaskType.NORMAL, runnables);
 		task.taskExecutor = this;
 		return task;

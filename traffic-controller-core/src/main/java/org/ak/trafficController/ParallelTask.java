@@ -21,25 +21,35 @@ public abstract class ParallelTask<T> extends Task {
 	protected List<Task> tasks = new ArrayList<Task>(); 
 	protected AtomicInteger tasksLeftRef = new AtomicInteger();
 	
-	protected void addRunnables(Runnable... runnables) {
-		for (Runnable runnable : runnables) {
+	
+	
+	public void addRunnables(TaskType taskType, TaskExecutor executor, RunnableToBeExecuted... runnables) {
+		for (RunnableToBeExecuted runnable : runnables) {
+			ExecutableTask task = getExecutable(runnable, taskType);
+			task.taskExecutor = executor;
+			tasks.add(task);
+		}
+	}
+	
+	public void addRunnables(RunnableToBeExecuted... runnables) {
+		for (RunnableToBeExecuted runnable : runnables) {
 			tasks.add(getExecutable(runnable, TaskType.NORMAL));
 		}
 	}
 	
-	protected void addSlowRunnables(Runnable... runnables) {
-		for (Runnable runnable : runnables) {
+	public void addSlowRunnables(RunnableToBeExecuted... runnables) {
+		for (RunnableToBeExecuted runnable : runnables) {
 			tasks.add(getExecutable(runnable, TaskType.SLOW));
 		}
 	}
 
-	protected ExecutableTask getExecutable(Runnable runnable, TaskType taskType) {
+	protected ExecutableTask getExecutable(RunnableToBeExecuted runnable, TaskType taskType) {
 		ExecutableTask task = ExecutableTask.getFromPool(uniqueNumber,()->executeRunnable(runnable), taskType);
 		task.taskExecutor = this.taskExecutor;
 		return task;
 	}
 
-	public void executeRunnable(Runnable runnable) {
+	public void executeRunnable(RunnableToBeExecuted runnable) throws Throwable {
 		runnable.run();
 		postTaskRun();
 	}
