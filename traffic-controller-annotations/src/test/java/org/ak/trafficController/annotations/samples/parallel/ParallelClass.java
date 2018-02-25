@@ -25,6 +25,7 @@ public class ParallelClass {
 	
 	@Parallel
 	public void doInParallel() {
+		task4.async();
 		task1.doSomething();
 		task2.doSomething();
 		task3.doSomething();

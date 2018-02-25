@@ -100,7 +100,8 @@ public class AnnotationSupportImpl {
 		if (taskInThread == null) {
 			task.submit();
 		} else {
-			taskInThread.thenParallelWithoutWait(convertAnnotationTaskTypeToFrameworkTaskType(taskType), taskExecutor, taskToWorkOn);
+			AtomicReference<Task> taskReference = new AtomicReference<Task>(task);
+			((ParallelTask) taskInThread).addRunnables(convertAnnotationTaskTypeToFrameworkTaskType(taskType), taskExecutor, ()->taskExecutor.enque(taskReference.get()));
 		}
 		return null;
 	}
@@ -210,7 +211,7 @@ public class AnnotationSupportImpl {
 				}
 			};
 		}
-		org.ak.trafficController.Task.TaskType taskType = parallel.taskType()==TaskType.NORMAL ? org.ak.trafficController.Task.TaskType.NORMAL : org.ak.trafficController.Task.TaskType.SLOW;
+		org.ak.trafficController.Task.TaskType taskType = convertAnnotationTaskTypeToFrameworkTaskType(parallel.taskType());
 		((ParallelTask) task).addRunnables(taskType, taskExecutor, runnableToBeExecuted);
 		return taskExecutor;
 	}

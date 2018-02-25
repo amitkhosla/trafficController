@@ -3,6 +3,7 @@ package org.ak.trafficController.annotations.samples.parallel;
 import javax.inject.Named;
 
 import org.ak.trafficController.annotations.api.Controlled;
+import org.ak.trafficController.annotations.api.Submit;
 
 @Named
 public class Task4 {
@@ -28,5 +29,10 @@ public class Task4 {
 		}
 		System.out.println("Task4 is executed."+a);
 		return a * 4;
+	}
+
+	@Submit
+	public void async() {
+		System.out.println("Async is called.");
 	}
 }
