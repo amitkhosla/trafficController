@@ -17,6 +17,7 @@ import org.ak.trafficController.ParallelTask;
 import org.ak.trafficController.RunnableToBeExecuted;
 import org.ak.trafficController.Task;
 import org.ak.trafficController.TaskExecutor;
+import org.ak.trafficController.UnlinkedTask;
 import org.ak.trafficController.annotations.api.Controlled;
 import org.ak.trafficController.annotations.api.Join;
 import org.ak.trafficController.annotations.api.Parallel;
@@ -86,14 +87,26 @@ public class AnnotationSupportImpl {
 			}
 		};
 		TaskExecutor taskExecutor = taskHelper.getTaskExecutor(async, joinPoint);
-		switch (async.taskType()) {
+		Task task = null;
+		TaskType taskType = async.taskType();
+		switch (taskType) {
 		case NORMAL: 
-			taskExecutor.of(taskToWorkOn).submit();
+			task = taskExecutor.of(taskToWorkOn);
 			break;
 		case SLOW :
-			taskExecutor.slowOf(taskToWorkOn).submit();
+			task = taskExecutor.slowOf(taskToWorkOn);
+		}
+		Task taskInThread = ParallelJoinHelper.getTask();
+		if (taskInThread == null) {
+			task.submit();
+		} else {
+			taskInThread.thenParallelWithoutWait(convertAnnotationTaskTypeToFrameworkTaskType(taskType), taskExecutor, taskToWorkOn);
 		}
 		return null;
+	}
+
+	protected org.ak.trafficController.Task.TaskType convertAnnotationTaskTypeToFrameworkTaskType(TaskType taskType) {
+		return taskType == TaskType.NORMAL ? org.ak.trafficController.Task.TaskType.NORMAL : org.ak.trafficController.Task.TaskType.SLOW;
 	}
 
 	@Around("execution(@org.ak.trafficController.annotations.api.Join * *(..)) && @annotation(join)")

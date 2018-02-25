@@ -21,9 +21,18 @@ public class UnlinkedTask extends Task {
 		this.taskToBeAsynced = taskToBeAsynced;
 		taskToBeAsynced.parentTask = this;
 	}
+	
+	public UnlinkedTask setTaskExecutorForAsyncTask(TaskExecutor taskExecutor) {
+		this.taskToBeAsynced.taskExecutor = taskExecutor;
+		return this;
+	}
 
 	@Override
 	protected void executeCurrentTask() {
-		taskExecutor.enque(taskToBeAsynced);
+		if (taskToBeAsynced.taskExecutor == null) {
+			taskExecutor.enque(taskToBeAsynced);
+		} else {
+			taskToBeAsynced.taskExecutor.enque(taskToBeAsynced);
+		}
 	}
 }

@@ -364,6 +364,14 @@ public abstract class Task implements Poolable {
 		includeUnlinkTask(parallelExecutingTask, task);
 		return parallelExecutingTask;
 	}
+	
+	public <T> ParallelExecutingTask<T> thenParallelWithoutWait(TaskType tp, TaskExecutor taskExecutor, RunnableToBeExecuted... runnables) {
+		ParallelExecutingTask parallelExecutingTask = ParallelExecutingTask.getFromPool(uniqueNumber, tp, runnables);
+		UnlinkedTask task = new UnlinkedTask(uniqueNumber, tp, parallelExecutingTask)
+				.setTaskExecutorForAsyncTask(taskExecutor);
+		includeUnlinkTask(parallelExecutingTask, task);
+		return parallelExecutingTask;
+	}
 
 	protected void includeUnlinkTask(Task parallelExecutingTask, UnlinkedTask task) {
 		then(task);
