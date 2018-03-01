@@ -24,9 +24,14 @@ public abstract class ParallelTask<T> extends Task {
 	
 	
 	public void addRunnables(TaskType taskType, TaskExecutor executor, RunnableToBeExecuted... runnables) {
+		addRunnables(taskType, executor, null, runnables);
+	}
+	
+	public void addRunnables(TaskType taskType, TaskExecutor executor, String name, RunnableToBeExecuted... runnables) {
 		for (RunnableToBeExecuted runnable : runnables) {
 			ExecutableTask task = getExecutable(runnable, taskType);
 			task.taskExecutor = executor;
+			task.name = name;
 			tasks.add(task);
 		}
 	}
@@ -41,6 +46,12 @@ public abstract class ParallelTask<T> extends Task {
 		for (RunnableToBeExecuted runnable : runnables) {
 			tasks.add(getExecutable(runnable, TaskType.SLOW));
 		}
+	}
+	
+	public void addTask(Task task) {
+		task.parentTask = this.parentTask;
+		task.then(this::postTaskRun);
+		tasks.add(task);
 	}
 
 	protected ExecutableTask getExecutable(RunnableToBeExecuted runnable, TaskType taskType) {
@@ -79,7 +90,11 @@ public abstract class ParallelTask<T> extends Task {
 	}
 
 	public void executeInternalTask(Task task) {
-		taskExecutor.enque(task);
+		if (task.taskExecutor != null) {
+			taskExecutor.enque(task);
+		} else {
+			taskExecutor.enque(task);
+		}
 	}
 	
 	///TODO - WE CAN ADD WAY TO ADD CHAIN THE SUB TASKS. TWO CLASSES CAN BE CREATED.

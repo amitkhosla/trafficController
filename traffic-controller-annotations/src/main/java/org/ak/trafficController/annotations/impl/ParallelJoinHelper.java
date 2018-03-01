@@ -35,6 +35,13 @@ public class ParallelJoinHelper {
 		return list.get(list.size() -1);
 	}
 	
+	public static void removeParallelId(Integer parallelId) {
+		List<Integer> list = parallelChain.get();
+		if (Objects.isNull(list)) {
+			list.remove(parallelId);
+		}
+	}
+	
 	public static Integer getObjectKeyForParalleldTask() {
 		List<Integer> list = parallelChain.get();
 		Integer paralleTaskId = list.get(list.size() -1);

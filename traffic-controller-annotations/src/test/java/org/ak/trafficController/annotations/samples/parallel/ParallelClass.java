@@ -23,6 +23,10 @@ public class ParallelClass {
 	@Inject
 	Joiner joiner;
 	
+
+	@Inject
+	Joiner2 joiner2;
+	
 	@Parallel
 	public void doInParallel() {
 		task4.async();
@@ -38,6 +42,17 @@ public class ParallelClass {
 		Integer j = task2.doSomething(a);
 		Integer k = task3.doSomething(a);
 		Integer l = task4.doSomething(a);
-		return joiner.join(i,j,k,l); 
+		Integer data = joiner.join(i,j,k,l);
+		return joiner2.getTwice(data);
+	}
+	
+	@Parallel
+	public Integer doInParallel2(int a) {
+		Integer i = task1.doSomething(a);
+		Integer j = task2.doSomething(a);
+		Integer k = task3.doSomething(a);
+		Integer l = task4.doSomething(a);
+		Integer data = joiner.join(i,j,k,l);
+		return joiner2.getTwice(data);
 	}
 }

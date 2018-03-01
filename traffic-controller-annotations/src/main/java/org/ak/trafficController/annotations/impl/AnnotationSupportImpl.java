@@ -13,6 +13,8 @@ import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.ak.trafficController.ExecutableTask;
+import org.ak.trafficController.ParallelExecutingTask;
 import org.ak.trafficController.ParallelTask;
 import org.ak.trafficController.RunnableToBeExecuted;
 import org.ak.trafficController.Task;
@@ -47,26 +49,55 @@ public class AnnotationSupportImpl {
 	 public Object runParallel(ProceedingJoinPoint joinPoint, Parallel parallel) throws Throwable {
 		int currentParallelId = parallelId.incrementAndGet();
 		parallelJoinHelper.map.put(currentParallelId, new ConcurrentHashMap<>());
+		AtomicInteger taskId = new AtomicInteger(0);
+		AtomicInteger earlierParallelTaskId = new AtomicInteger(0);
+		Task originalTask = parallelJoinHelper.getTask();
+		
+		boolean isSubParallelTask = originalTask != null;
+		if (isSubParallelTask) {
+			//this task is one task of parallel tasks.
+			taskId.set(parallelJoinHelper.getObjectKeyForParalleldTask());
+			earlierParallelTaskId.set(parallelJoinHelper.getParallelId());
+		}
 		ParallelJoinHelper.setParallelTaskId(currentParallelId);	
-		boolean isSubParallelTask = parallelJoinHelper.getTask() != null;
+		//if (!isSubParallelTask) {
+		ExecutableTask thisParallelTask = TaskExecutor.getInstance().of(()->{});
+		thisParallelTask.setName("ParallelTask" + currentParallelId);
+		ParallelExecutingTask<Object> thenParallel = thisParallelTask.thenParallel(()->{});
+		thenParallel.setName("ParallelTaskName:" + currentParallelId);
+		parallelJoinHelper.setTask(thenParallel); //set dummy task
+		//}
 		if (!isSubParallelTask) {
-			parallelJoinHelper.setTask(TaskExecutor.getInstance().of(()->{})); //set dummy task
-		}
-		parallelJoinHelper.setTask(parallelJoinHelper.getTask().thenParallel(()->{})); // set dummy parallel task.
-		AtomicReference<Object> output = new AtomicReference<Object>(joinPoint.proceed());
-		parallelJoinHelper.setTask(parallelJoinHelper.getTask().then(()->{
-			output.set(performCleanup(currentParallelId));
-		}));
-		if (!isSubParallelTask) {
+			AtomicReference<Object> output = new AtomicReference<Object>(joinPoint.proceed());
+			Task cleanUpTask = parallelJoinHelper.getTask().then(()->{
+				output.set(performCleanup(currentParallelId));
+			});
+			cleanUpTask.setName("Clean up task " + currentParallelId);
+			parallelJoinHelper.setTask(cleanUpTask);
 			//if (((MethodSignature) joinPoint.getSignature()).
-			parallelJoinHelper.getTask().start(100000000);
+			ParallelJoinHelper.taskChain.get().start(100000000);
 			parallelJoinHelper.removeTask();
+			Object val = output.get();
+			if (val != null && val.getClass() == JoinResult.class) {
+				val = ((JoinResult) val).result;
+			}
+			return val;
+		} else {
+			joinPoint.proceed();
+			if (originalTask instanceof ParallelTask) {
+				Task task = parallelJoinHelper.getTask().then(()->{
+					Object result = performCleanup(currentParallelId);
+					if (Objects.nonNull(result)) {
+						ParallelJoinHelper.putObject(earlierParallelTaskId.get(), taskId.get(), result);
+					}
+				});
+				((ParallelTask) originalTask).addTask(thisParallelTask);
+				parallelJoinHelper.setTask(originalTask);
+				ParallelJoinHelper.removeParallelId(currentParallelId);
+				ParallelJoinHelper.setParallelTaskId(earlierParallelTaskId.get());
+			}
+			return null;
 		}
-		Object val = output.get();
-		if (val != null && val.getClass() == JoinResult.class) {
-			val = ((JoinResult) val).result;
-		}
-		return val;
 	}
 	
 	protected Object performCleanup(int currentParallelId) {
@@ -115,7 +146,7 @@ public class AnnotationSupportImpl {
 		int taskId = parallelJoinHelper.getObjectKeyForParalleldTask();
 		int parallelTaskId = ParallelJoinHelper.getParallelId();
 		AtomicReference<Object> output = new AtomicReference<Object>(null);
-		parallelJoinHelper.setTask(parallelJoinHelper.getTask().then(()->{
+		Task joinerTask = parallelJoinHelper.getTask().then(()->{
 			List<Object> list = new ArrayList<>();
 			addAllResultObjectsTillNowInList(list, parallelTaskId, taskId);
 			if (!list.isEmpty()) {
@@ -126,7 +157,9 @@ public class AnnotationSupportImpl {
 			JoinResult jr = new JoinResult();
 			jr.result = output.get(); 
 			ParallelJoinHelper.map.get(parallelTaskId).put(taskId, jr);
-		}));
+		});
+		joinerTask.setName("joiner ParallelId:" + parallelTaskId + " taskId : " + taskId + getTaskNameFromJoinPoint(joinPoint));
+		parallelJoinHelper.setTask(joinerTask);
 		return null;
 	}
 	
@@ -149,15 +182,18 @@ public class AnnotationSupportImpl {
 				continue;
 			}
 			if (val.getClass() == JoinResult.class) {
-				list.clear();
+				//list.clear();
+				list.add(((JoinResult) val).result);
+				map.put(i,ParallelJoinHelper.NULL_OBJECT);
 			} else {
 				list.add(val);
+				map.put(i,ParallelJoinHelper.NULL_OBJECT);
 			}
 		}
 	}
 
 	@Around("execution(@org.ak.trafficController.annotations.api.Controlled * *(..)) && @annotation(parallel)")
-	 public Object runAsync(ProceedingJoinPoint joinPoint, Controlled parallel) throws Throwable {
+	 public Object runControlled(ProceedingJoinPoint joinPoint, Controlled parallel) throws Throwable {
 		TaskExecutorDetails taskExecutorDetail = taskHelper.getTaskExecutor(parallel, joinPoint);
 		Task task = ParallelJoinHelper.getTask();
 		boolean taskExecutorPresent = TaskExecutorsInUseThreadLocal.isTaskExecutorPresent(taskExecutorDetail.getName());
@@ -211,9 +247,15 @@ public class AnnotationSupportImpl {
 				}
 			};
 		}
+		String name = "ParallelId:" + parallelTaskId + " taskId:" +taskId + " " + getTaskNameFromJoinPoint(joinPoint);
 		org.ak.trafficController.Task.TaskType taskType = convertAnnotationTaskTypeToFrameworkTaskType(parallel.taskType());
-		((ParallelTask) task).addRunnables(taskType, taskExecutor, runnableToBeExecuted);
+		((ParallelTask) task).addRunnables(taskType, taskExecutor,name, runnableToBeExecuted);
 		return taskExecutor;
+	}
+
+	private String getTaskNameFromJoinPoint(ProceedingJoinPoint joinPoint) {
+		// TODO Auto-generated method stub
+		return joinPoint.toShortString();
 	}
 
 	/**

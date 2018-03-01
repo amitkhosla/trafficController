@@ -18,6 +18,8 @@ public abstract class Task implements Poolable {
 	protected Integer uniqueNumber;
 	protected TaskExecutor taskExecutor;
 	protected Throwable throwable; //This is for throwing back in case of sync tasks and any task throw exception.
+
+	protected String name;
 	
 	protected Task parentTask; //The task which is parent of this sub chain.
 	
@@ -248,11 +250,15 @@ public abstract class Task implements Poolable {
 	}
 	
 	public Task then(Task task) {
-		this.nextTask = task;
+		Task lastTask = this;
+		while (lastTask.nextTask != null) {
+			lastTask = lastTask.nextTask;
+		}
+		lastTask.nextTask = task;
 		task.startingTask = this.startingTask;
 		task.uniqueNumber = this.uniqueNumber;
 		task.taskExecutor = this.taskExecutor;
-		task.parentTask = this.parentTask;
+		task.parentTask = lastTask.parentTask;
 		return task;
 	}
 	
@@ -431,10 +437,23 @@ public abstract class Task implements Poolable {
 	 */
 	@Override
 	public String toString() {
-		return "Task [type: " + this.getClass() + ", uniqueNumber: " + uniqueNumber + ", taskType : " + taskType + "]";
+		return name + " Task [type: " + this.getClass() + ", uniqueNumber: " + uniqueNumber + ", taskType : " + taskType + "]";
 	}
 
 	public TaskExecutor getTaskExecutor() {
 		return taskExecutor;
+	}
+	
+	public Task getStartTask() {
+		return this.startingTask;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public Task setName(String name) {
+		this.name = name;
+		return this;
 	}
 }

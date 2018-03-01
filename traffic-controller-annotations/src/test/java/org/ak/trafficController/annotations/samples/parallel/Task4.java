@@ -31,7 +31,7 @@ public class Task4 {
 		return a * 4;
 	}
 
-	@Submit
+	@Submit(executorName="myExec", maxConsumer="1")
 	public void async() {
 		System.out.println("Async is called.");
 	}
