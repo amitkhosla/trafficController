@@ -2,8 +2,16 @@ package org.ak.trafficController;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+
 import org.ak.trafficController.Task.TaskType;
 import org.junit.Test;
+
+import junit.framework.Assert;
 
 
 public class TaskTest {
@@ -27,6 +35,7 @@ public class TaskTest {
 		assertNull(task.taskType);
 	}
 	
+	@Test
 	public void testExecute() {
 		StringBuilder sb = new StringBuilder();
 		Task t = new Task(234,TaskType.NORMAL) {
@@ -43,135 +52,201 @@ public class TaskTest {
 		assertTrue(sb.indexOf("execute current task called")>-1);
 		assertTrue(sb.indexOf("execute next task called")>-1);
 	}
-	/*
-	 
-	protected void executeNextTask() {
-		if (nextTask != null) {
-			taskExecutor.enque(nextTask);
-		}
-		if (canSendBackToPool()) {
-			this.addBackToPool();
-		}
-	}
 	
-	public boolean canSendBackToPool() {
-		return this.startingTask != this;
-	}
-
-	public void start() {
-		NotifyingTask task = NotifyingTask.getFromPool(uniqueNumber);
-		then(task);
-		doSubmit();
-		pauseExecutingThread();
-	}
 	
-	protected void notifyBack() {
-		ArrayBlockingQueue abq = map.get(this.uniqueNumber);
-		if (abq==null) {
-			map.putIfAbsent(this.uniqueNumber, ObjectPoolManager.getInstance().getFromPool(ArrayBlockingQueue.class, ()->new ArrayBlockingQueue(1)));
-		}
-		abq=map.get(uniqueNumber);
+	@Test
+	public void testthenParallelAsyncSingleItemMultipleConsumers() {
+		AtomicInteger ai1 = new AtomicInteger();
+		AtomicInteger ai2 = new AtomicInteger();
+		AtomicInteger ai3 = new AtomicInteger();
+		AtomicInteger ai4 = new AtomicInteger();
+		AtomicInteger ai5 = new AtomicInteger();
+		
+		Collection<Consumer<Integer>> consumers = new ArrayList<>();
+		consumers.add(i->{ai2.addAndGet(i);});
+		consumers.add(i->{ai3.addAndGet(i);});
+		consumers.add(i->{ai4.addAndGet(i);});
+		consumers.add(i->{ai5.addAndGet(i);});
+		
+		Task t = TaskExecutor.getInstance().of(()->{})
+				.thenParallelAsync(TaskType.NORMAL, 2, consumers );
+		
+		Assert.assertEquals(TaskType.NORMAL, t.taskType);
 		try {
-			abq.add(new Object());
-		} catch(RuntimeException re) {
-			System.err.println("Error occured for ... " + monitor + ">>>>" + uniqueNumber);
-			throw re;
-		}
-	}
-	
-	protected void pauseExecutingThread() {
-		ArrayBlockingQueue q = ObjectPoolManager.getInstance().getFromPool(ArrayBlockingQueue.class, ()->new ArrayBlockingQueue(1));
-		map.putIfAbsent(this.uniqueNumber, q);
-		q = map.get(uniqueNumber);
-		try {
-			q.take();
-		} catch (InterruptedException e) {
+			t.start(100);
+		} catch (Throwable e) {
+			fail("should not have thrown exception");
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		ObjectPoolManager.getInstance().addBackToPoolGeneric(map.remove(this.uniqueNumber));
-		this.startingTask.addBackToPool();
+		Assert.assertEquals(2, ai2.get());
+		Assert.assertEquals(2, ai3.get());
+		Assert.assertEquals(2, ai4.get());
+		Assert.assertEquals(2, ai5.get());
+	}
+	
+	@Test
+	public void testthenParallelAsyncCollectionWithSingleConsumer() {
+		List<Integer> list = new ArrayList<>();
+		for (int i=1;i<=100;i++) {
+			list.add(i);
+		}
+		
+		AtomicInteger a = new AtomicInteger();
+		
+		try {
+			TaskExecutor.getInstance().of(()->{}).thenParallelAsync(TaskType.NORMAL, list, i->{a.addAndGet(i);})
+				.start(100);
+		} catch (Throwable e) {
+			fail("should not have thrown exception");
+			e.printStackTrace();
+		}
+		
+		Assert.assertEquals(50*101, a.get());
+	}
+	
+	@Test
+	public void testthenParallelSingleItemMultipleConsumers() {
+		AtomicInteger ai1 = new AtomicInteger();
+		AtomicInteger ai2 = new AtomicInteger();
+		AtomicInteger ai3 = new AtomicInteger();
+		AtomicInteger ai4 = new AtomicInteger();
+		AtomicInteger ai5 = new AtomicInteger();
+		
+		Collection<Consumer<Integer>> consumers = new ArrayList<>();
+		consumers.add(i->{ai2.addAndGet(i);});
+		consumers.add(i->{ai3.addAndGet(i);});
+		consumers.add(i->{ai4.addAndGet(i);});
+		consumers.add(i->{ai5.addAndGet(i);});
+		
+		Task t = TaskExecutor.getInstance().of(()->{})
+				.thenParallel(TaskType.NORMAL, 2, consumers );
+		
+		Assert.assertEquals(TaskType.NORMAL, t.taskType);
+		try {
+			t.start(100);
+		} catch (Throwable e) {
+			fail("should not have thrown exception");
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Assert.assertEquals(2, ai2.get());
+		Assert.assertEquals(2, ai3.get());
+		Assert.assertEquals(2, ai4.get());
+		Assert.assertEquals(2, ai5.get());
+	}
+	
+	@Test
+	public void testthenParallelCollectionWithSingleConsumer() {
+		List<Integer> list = new ArrayList<>();
+		for (int i=1;i<=100;i++) {
+			list.add(i);
+		}
+		
+		AtomicInteger a = new AtomicInteger();
+		
+		try {
+			TaskExecutor.getInstance().of(()->{}).thenParallel(TaskType.NORMAL, list, i->{a.addAndGet(i);})
+				.start(100);
+		} catch (Throwable e) {
+			fail("should not have thrown exception");
+			e.printStackTrace();
+		}
+		
+		Assert.assertEquals(50*101, a.get());
+	}
+	
+	@Test
+	public void testhandleException() {
+		AtomicInteger ai = new AtomicInteger(0);
+		
+		try {
+			TaskExecutor.getInstance().of(()->{throw new Exception("MyException");})
+				.shouldContinueNextTaskIfExceptionOccurs()
+				.then(()->{ai.incrementAndGet();}).start(10);
+			//fail ("should not throw exception");
+		} catch (Throwable e) {
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+		Assert.assertEquals(0, ai.get());
 	}
 
-	public void submit() {
-		doSubmit();
+	@Test
+	public void testHandleExceptionWhenShouldContinueOnException() {
+		AtomicInteger ai = new AtomicInteger(0);
+		try {
+			TaskExecutor.getInstance().of(()->{throw new Exception("MyException");})
+				.shouldContinueNextTaskIfExceptionOccurs()
+				.onException(e->{}).getParentTask().then(()->{ai.incrementAndGet();})
+			.start(100);
+		} catch (Throwable e) {
+			fail ("should not throw exception");
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+		
+		Assert.assertEquals(1, ai.get());
+	}
+	
+	@Test
+	public void testHandleExceptionWhenShouldContinueOnExceptionButThrowException() {
+		AtomicInteger ai = new AtomicInteger(0);
+		try {
+			TaskExecutor.getInstance().of(()->{throw new Exception("MyException");})
+				.shouldContinueNextTaskIfExceptionOccurs()
+				.shouldThrowExceptionIfOccurs()
+				.onException(e->{}).getParentTask().then(()->{ai.incrementAndGet();})
+			.start(100);
+			fail ("should throw exception");
+		} catch (Throwable e) {
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+		
+		Assert.assertEquals(0, ai.get());
 	}
 
-	protected void doSubmit() {
-		taskExecutor.enque(this.startingTask);
-	}
-	
-	public Task then(Task task) {
-		this.nextTask = task;
-		task.startingTask = this.startingTask;
-		task.monitor = this.monitor;
-		task.uniqueNumber = this.uniqueNumber;
-		return task;
-	}
-	
-	public <T> ReturningTask<T> then(Supplier<T> supplier) {
-		ReturningTask<T> task = ReturningTask.getFromPool(uniqueNumber, supplier, TaskType.NORMAL);
-		then(task);
-		return task;
-	}
-	
-	public Task then(Runnable runnable) {
-		ExecutableTask task = ExecutableTask.getFromPool(uniqueNumber,runnable, TaskType.NORMAL);
-		then(task);
-		return task;
-	}
-	
-	public <T> ReturningTask<T> thenSlow(Supplier<T> supplier) {
-		ReturningTask<T> task = ReturningTask.getFromPool(uniqueNumber,supplier, TaskType.SLOW);
-		then(task);
-		return task;
-	}
-	
-	public Task thenSlow(Runnable runnable) {
-		ExecutableTask task = ExecutableTask.getFromPool(uniqueNumber, runnable, TaskType.SLOW);
-		then(task);
-		return task;
-	}
-	
-	public <T> ParallelExecutingTask<T> thenParallel(Runnable... runnables) {
-		return thenParallel(TaskType.NORMAL,
-				runnables);
+	@Test
+	public void testHandleExceptionInCaseOfSubmit() {
+		try {
+			TaskExecutor.getInstance().of(()->{throw new Exception("MyException");}).submit();
+			Thread.sleep(100);
+		} catch (Throwable e) {
+			fail ("should not throw exception");
+		}
 	}
 
-	public <T> ParallelExecutingTask<T> thenParallel(TaskType tp,
-			Runnable... runnables) {
-		ParallelExecutingTask<T> parallelExecutingTask = ParallelExecutingTask.getFromPool(uniqueNumber, tp, runnables);
-		then(parallelExecutingTask);
-		return parallelExecutingTask;
-	}
-	
-	public <T> ParallelReturningTask<T> thenParallel(Supplier<T>... suppliers) {
-		ParallelReturningTask<T> parallelExecutingTask = thenParallel(TaskType.NORMAL,
-				suppliers);
-		return parallelExecutingTask;
+	@Test
+	public void testHandleExceptionWhenHandlerAttached() {
+		try {
+			TaskExecutor.getInstance().of(()->{throw new Exception("MyException");}).onException(e->{}).start(100);
+		} catch (Throwable e) {
+			fail ("should not throw exception");
+		}
 	}
 
-	public <T> ParallelReturningTask<T> thenParallel(TaskType tp,
-			Supplier<T>... suppliers) {
-		ParallelReturningTask<T> parallelExecutingTask = ParallelReturningTask.getFromPool(uniqueNumber,tp,suppliers);
-		then(parallelExecutingTask);
-		return parallelExecutingTask;
+	@Test
+	public void testHandleExceptionDefault() {
+		try {
+			TaskExecutor.getInstance().of(()->{throw new Exception("MyException");}).start(100);
+			fail("Should have thrown exception");
+		} catch (Throwable e) {
+			e.printStackTrace();
+			Assert.assertTrue(e.getMessage().equals("MyException"));
+		}
 	}
 	
-	public <T> ParallelExecutingTask<T> thenParallelSlow(Runnable... runnables) {
-		return thenParallel(TaskType.SLOW, runnables);
-	}
-	
-	public <T> ParallelReturningTask<T> thenParallelSlow(Supplier<T>... suppliers) {
-		return thenParallel(TaskType.SLOW, suppliers);
-	}
-
-	 (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 
-	@Override
-	public String toString() {
-		return "Task [type: " + this.getClass() + ", uniqueNumber: " + uniqueNumber + ", taskType : " + taskType + "]";
-	}
-
-*/	
 }

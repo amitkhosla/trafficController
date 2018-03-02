@@ -70,7 +70,7 @@ public abstract class ParallelTask<T> extends Task {
 		//TaskExecutorNewTest.logMessages("tasks left ..." + tasksLeft + " for " + uniqueNumber);
 		if (tasksLeft == 0) {
 			//TaskExecutorNewTest.logMessages("completed parallel ...for " + uniqueNumber);
-			this.tasks.clear();
+
 			this.executeNextTask();
 		}
 	}

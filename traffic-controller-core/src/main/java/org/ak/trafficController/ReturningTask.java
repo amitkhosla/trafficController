@@ -11,7 +11,7 @@ import org.ak.trafficController.pool.ObjectPoolManager;
 
 public class ReturningTask<T> extends Task {
 
-	static <K> ReturningTask<K> getFromPool(int unique, Supplier<K> supplier, TaskType taskType) {
+	static <K> ReturningTask<K> getFromPool(int unique, SupplierWhichCanThrowException<K> supplier, TaskType taskType) {
 		ReturningTask<K> et = ObjectPoolManager.getInstance().getFromPool(ReturningTask.class, ()->new ReturningTask<K>(unique, supplier, taskType));
 		et.uniqueNumber = unique;
 		et.supplier = supplier;
@@ -25,10 +25,10 @@ public class ReturningTask<T> extends Task {
 		return false;
 	}
 	
-	private Supplier<T> supplier;
+	private SupplierWhichCanThrowException<T> supplier;
 	private T output;
 
-	public ReturningTask(int unique, Supplier<T> supplier, TaskType taskType) {
+	public ReturningTask(int unique, SupplierWhichCanThrowException<T> supplier, TaskType taskType) {
 		super(unique, taskType);
 		this.supplier = supplier;
 	}
@@ -96,7 +96,7 @@ public class ReturningTask<T> extends Task {
 	}
 
 	@Override
-	protected void executeCurrentTask() {
+	protected void executeCurrentTask() throws Throwable {
 		this.output = this.supplier.get();
 	}
 	

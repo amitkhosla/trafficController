@@ -66,23 +66,27 @@ public abstract class Task implements Poolable {
 		try {
 			executeInternal();
 		} catch (Throwable throwable) {
-			logger.log(Level.WARNING, "Exception occured in executing a task", throwable);
-			this.throwable = throwable;
-			boolean shouldThrow = false;
-			if (Objects.isNull(exceptionTask)) {
-				shouldThrow = true;
-			}
-			else {
-				shouldThrow = this.shouldThrowException;
-				this.exceptionTask.execute();
-			}
-			if (!shouldThrow && shouldContinueOnException) {
-				executeNextTask();
-				return;
-			}
-			
-			throwIfRequired(throwable, shouldThrow);
+			handleException(throwable);
 		}
+	}
+
+	protected void handleException(Throwable throwable) {
+		logger.log(Level.WARNING, "Exception occured in executing a task", throwable);
+		this.throwable = throwable;
+		boolean shouldThrow = false;
+		if (Objects.isNull(exceptionTask)) {
+			shouldThrow = true;
+		}
+		else {
+			shouldThrow = this.shouldThrowException;
+			this.exceptionTask.execute();
+		}
+		if (!shouldThrow && shouldContinueOnException) {
+			executeNextTask();
+			return;
+		}
+		
+		throwIfRequired(throwable, shouldThrow);
 	}
 
 	protected void throwIfRequired(Throwable throwable, boolean shouldThrow) {
@@ -166,7 +170,7 @@ public abstract class Task implements Poolable {
 	}
 	
 	public <T> ReturningTask<T> onExceptionGet(Function<Throwable, T> exceptionHandler) {
-		Supplier<T> supplier = ()->exceptionHandler.apply(throwable);
+		SupplierWhichCanThrowException<T> supplier = ()->exceptionHandler.apply(throwable);
 		ReturningTask<T> task = ReturningTask.getFromPool(uniqueNumber, supplier, TaskType.NORMAL);
 		setExceptionTaskParams(task);
 		return task;
@@ -181,7 +185,7 @@ public abstract class Task implements Poolable {
 	}
 	
 	public <T> ReturningTask<T> onExceptionGetAndAlsoContinueOtherTasks(Function<Throwable, T> exceptionHandler) {
-		Supplier<T> supplier = ()->exceptionHandler.apply(throwable);
+		SupplierWhichCanThrowException<T> supplier = ()->exceptionHandler.apply(throwable);
 		ReturningTask<T> task = ReturningTask.getFromPool(uniqueNumber, supplier, TaskType.NORMAL);
 		setExceptionTaskParams(task);
 		
@@ -262,7 +266,7 @@ public abstract class Task implements Poolable {
 		return task;
 	}
 	
-	public <T> ReturningTask<T> then(Supplier<T> supplier) {
+	public <T> ReturningTask<T> then(SupplierWhichCanThrowException<T> supplier) {
 		ReturningTask<T> task = ReturningTask.getFromPool(uniqueNumber, supplier, TaskType.NORMAL);
 		then(task);
 		return task;
@@ -274,7 +278,7 @@ public abstract class Task implements Poolable {
 		return task;
 	}
 	
-	public <T> ReturningTask<T> thenSlow(Supplier<T> supplier) {
+	public <T> ReturningTask<T> thenSlow(SupplierWhichCanThrowException<T> supplier) {
 		ReturningTask<T> task = ReturningTask.getFromPool(uniqueNumber,supplier, TaskType.SLOW);
 		then(task);
 		return task;

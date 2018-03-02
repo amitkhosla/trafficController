@@ -16,9 +16,9 @@ import org.mockito.Mockito;
 public class ReturningTaskTest {
 
 	@Test
-	public void testExecutableTask() {
+	public void testExecutableTask() throws Throwable {
 		AtomicInteger ai = new AtomicInteger();
-		Supplier<Integer> runnable = ()->ai.incrementAndGet();
+		SupplierWhichCanThrowException<Integer> runnable = ()->ai.incrementAndGet();
 		ReturningTask<Integer> rt = ReturningTask.getFromPool(234, runnable, TaskType.NORMAL);
 		Assert.assertTrue(rt.taskType == TaskType.NORMAL);
 		Assert.assertEquals(234,rt.uniqueNumber.intValue());

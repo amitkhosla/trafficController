@@ -70,7 +70,7 @@ public class TaskExecutor {
 		return task;
 	}
 	
-	public <T> ReturningTask<T> of(Supplier<T> supplier) {
+	public <T> ReturningTask<T> of(SupplierWhichCanThrowException<T> supplier) {
 		ReturningTask<T> rt =ReturningTask.getFromPool(ti.incrementAndGet(),supplier, TaskType.NORMAL);
 		rt.taskExecutor = this;
 		return rt;
