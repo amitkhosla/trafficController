@@ -165,7 +165,7 @@ public class TaskExecutor {
 	 * Number of fast task runners.
 	 * @return Fast task queue consumer count
 	 */
-	public Integer getNumberOfFastQueueConsumers() {
+	public int getNumberOfFastQueueConsumers() {
 		return numberOfFastQueueConsumers;
 	}
 
@@ -183,7 +183,7 @@ public class TaskExecutor {
 	 * Get number of slow task runners.
 	 * @return Slow task queue consumer count
 	 */
-	public Integer getNumberOfSlowQueueConsumers() {
+	public int getNumberOfSlowQueueConsumers() {
 		return numberOfSlowQueueConsumers;
 	}
 
