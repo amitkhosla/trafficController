@@ -242,6 +242,7 @@ public abstract class Task implements Poolable {
 	 * We can have a chain of processes which may be required post handling the exception.
 	 * To return back to normal task to which we attached the exception handler please use {@link Task#getParentTask()}.
 	 * @param exceptionHandler Exception handler function
+	 * @param <T> function return type
 	 * @return Returning Task
 	 */
 	public <T> ReturningTask<T> onExceptionGet(Function<Throwable, T> exceptionHandler) {
@@ -271,6 +272,7 @@ public abstract class Task implements Poolable {
 	 * We can have a chain of processes which may be required post handling the exception.
 	 * To return back to normal task to which we attached the exception handler please use {@link Task#getParentTask()}.
 	 * @param exceptionHandler Exception handler function
+	 * @param <T> type of function return type
 	 * @return Returning task
 	 */
 	public <T> ReturningTask<T> onExceptionGetAndAlsoContinueOtherTasks(Function<Throwable, T> exceptionHandler) {
@@ -368,10 +370,11 @@ public abstract class Task implements Poolable {
 	/**
 	 * This method add a new task in chain which will be run post running current task which will be running the supplier and data can be used further as configured in next tasks.
 	 * This creates {@link ReturningTask} which can be then 
-	 * <li> used to consume the data by using {@link ReturningTask#thenConsume(Consumer)} or {@link ReturningTask#thenConsumeMultiple(Consumer...)}.</li>
+	 * <ul> <li> used to consume the data by using {@link ReturningTask#thenConsume(Consumer)} or {@link ReturningTask#thenConsumeMultiple(Consumer...)}.</li>
 	 * <li> used to further create new task which will work on this data and return something else by using {@link ReturningTask#then(Function)}.</li>
-	 *  
+	 *  </ul>
 	 * @param supplier Supplier which will be run post the execution of current task
+	 * @param <T> Supplier type
 	 * @return Returning task
 	 */
 	public <T> ReturningTask<T> then(SupplierWhichCanThrowException<T> supplier) {
@@ -394,6 +397,7 @@ public abstract class Task implements Poolable {
 	/**
 	 * This method is similar to {@link Task#then(SupplierWhichCanThrowException)} with a difference that new task will be treated as slow task.
 	 * @param supplier Supplier to be executed in this new task
+	 * @param <T> Supplier type
 	 * @return Returning Task
 	 */
 	public <T> ReturningTask<T> thenSlow(SupplierWhichCanThrowException<T> supplier) {
@@ -419,6 +423,7 @@ public abstract class Task implements Poolable {
 	 * @param tp Task type
 	 * @param collection Collection to be worked on
 	 * @param consumerToWorkOn Consumer  Consumer of each item in Collection
+	 * @param <T> Supplier type
 	 * @return ParallelExecuting Task
 	 */
 	public <T> ParallelExecutingTask<T> thenParallel(TaskType tp, Collection<T> collection, Consumer<T> consumerToWorkOn) {
@@ -445,6 +450,7 @@ public abstract class Task implements Poolable {
 	 * @param tp Task type
 	 * @param itemToWorkOn Item which needs to be worked upon
 	 * @param consumersToWorkOn Consumers which will be executed
+	 * @param <T> Supplier type
 	 * @return Parallel Executing task
 	 */
 	public <T> ParallelExecutingTask<T> thenParallel(TaskType tp, T itemToWorkOn, Collection<Consumer<T>> consumersToWorkOn) {
@@ -470,6 +476,7 @@ public abstract class Task implements Poolable {
 	 * @param tp Task type
 	 * @param collection Collection to be worked on
 	 * @param consumerToWorkOn Consumer  Consumer of each item in Collection
+	 * @param <T> Collection and consumer type
 	 * @return ParallelExecuting Task
 	 */
 	public <T> ParallelExecutingTask<T> thenParallelAsync(TaskType tp, Collection<T> collection, Consumer<T> consumerToWorkOn) {
@@ -499,6 +506,8 @@ public abstract class Task implements Poolable {
 	 * @param tp Task type
 	 * @param itemToWorkOn Item to be worked on
 	 * @param functions Functions to be run on the data in parallel
+	 * @param <T> Function return type
+	 * @param <K> Type of item to work on
 	 * @return Parallel Returning task
 	 */
 	public <T, K> ParallelReturningTask<T> thenParallelReturning(TaskType tp, K itemToWorkOn, Collection<Function<K, T>> functions) {
@@ -517,10 +526,11 @@ public abstract class Task implements Poolable {
 	 * This task will help doing the things concurrently.
 	 * The data created in this by different consumers can be merged using {@link ParallelReturningTask#join(Consumer)} or {@link ParallelReturningTask#join(Function)}  
 	 * This task will be added next to the data.
-	 * 
 	 * @param tp Task type
 	 * @param itemToWorkOn Item to be worked on
 	 * @param functions Functions to be run on the data in parallel
+	 * @param <T> Function return type
+	 * @param <K> Type of item to work on
 	 * @return Parallel Returning task
 	 */
 	public <T, K> ParallelReturningTask<T> thenParallelReturningAsync(TaskType tp, K itemToWorkOn, Collection<Function<K, T>> functions) {
@@ -543,6 +553,7 @@ public abstract class Task implements Poolable {
 	 * @param tp Task type
 	 * @param itemToWorkOn Item which needs to be worked upon
 	 * @param consumersToWorkOn Consumers which will be executed
+	 * @param <T> Type of item to work on
 	 * @return Parallel Executing task
 	 */
 	public <T> ParallelExecutingTask<T> thenParallelAsync(TaskType tp, T itemToWorkOn, Collection<Consumer<T>> consumersToWorkOn) {
@@ -569,7 +580,7 @@ public abstract class Task implements Poolable {
 	 * @param runnables Runnables to be run
 	 * @return Parallel Executing task
 	 */
-	public <T> ParallelExecutingTask<T> thenParallelWithoutWait(TaskType tp, RunnableToBeExecuted... runnables) {
+	public ParallelExecutingTask thenParallelWithoutWait(TaskType tp, RunnableToBeExecuted... runnables) {
 		ParallelExecutingTask parallelExecutingTask = ParallelExecutingTask.getFromPool(uniqueNumber, tp, runnables);
 		UnlinkedTask task = new UnlinkedTask(uniqueNumber, tp, parallelExecutingTask);
 		includeUnlinkTask(parallelExecutingTask, task);
@@ -587,7 +598,7 @@ public abstract class Task implements Poolable {
 	 * @param runnables Runnables
 	 * @return Parallel Executing Task
 	 */
-	public <T> ParallelExecutingTask<T> thenParallelWithoutWait(TaskType tp, TaskExecutor taskExecutor, RunnableToBeExecuted... runnables) {
+	public ParallelExecutingTask thenParallelWithoutWait(TaskType tp, TaskExecutor taskExecutor, RunnableToBeExecuted... runnables) {
 		ParallelExecutingTask parallelExecutingTask = ParallelExecutingTask.getFromPool(uniqueNumber, tp, runnables);
 		UnlinkedTask task = new UnlinkedTask(uniqueNumber, tp, parallelExecutingTask)
 				.setTaskExecutorForAsyncTask(taskExecutor);
@@ -614,7 +625,7 @@ public abstract class Task implements Poolable {
 	 * @param runnables Runnables
 	 * @return ParallelExecutingTask
 	 */
-	public <T> ParallelExecutingTask<T> thenParallelWithoutWait(RunnableToBeExecuted... runnables) {
+	public ParallelExecutingTask thenParallelWithoutWait(RunnableToBeExecuted... runnables) {
 		return thenParallelWithoutWait(TaskType.NORMAL, runnables);
 	}
 	
@@ -627,7 +638,7 @@ public abstract class Task implements Poolable {
 	 * @param runnables Runnables
 	 * @return Parallel Executing Task
 	 */
-	public <T> ParallelExecutingTask<T> thenParallelWithoutWaitSlow(RunnableToBeExecuted... runnables) {
+	public ParallelExecutingTask thenParallelWithoutWaitSlow(RunnableToBeExecuted... runnables) {
 		return thenParallelWithoutWait(TaskType.SLOW, runnables);
 	}
 
@@ -637,7 +648,7 @@ public abstract class Task implements Poolable {
 	 * @param runnables Runnables
 	 * @return Parallel Executing task
 	 */
-	public <T> ParallelExecutingTask<T> thenParallel(RunnableToBeExecuted... runnables) {
+	public ParallelExecutingTask thenParallel(RunnableToBeExecuted... runnables) {
 		return thenParallel(TaskType.NORMAL, runnables);
 	}
 
@@ -648,8 +659,8 @@ public abstract class Task implements Poolable {
 	 * @param runnables Runnables
 	 * @return Parallel Executing Task
 	 */
-	public <T> ParallelExecutingTask<T> thenParallel(TaskType tp, RunnableToBeExecuted... runnables) {
-		ParallelExecutingTask<T> parallelExecutingTask = ParallelExecutingTask.getFromPool(uniqueNumber, tp, runnables);
+	public ParallelExecutingTask thenParallel(TaskType tp, RunnableToBeExecuted... runnables) {
+		ParallelExecutingTask parallelExecutingTask = ParallelExecutingTask.getFromPool(uniqueNumber, tp, runnables);
 		then(parallelExecutingTask);
 		return parallelExecutingTask;
 	}
@@ -658,6 +669,7 @@ public abstract class Task implements Poolable {
 	 * This method creates a task which is actually having multiple suppliers. These suppliers will run in parallel
 	 * and can be joined by using {@link ParallelReturningTask#join(Consumer)} or {@link ParallelReturningTask#join(Function)}
 	 * @param suppliers Suppliers
+	 * @param <T> Supplier type
 	 * @return Parallel Returning task
 	 */
 	public <T> ParallelReturningTask<T> thenParallel(Supplier<T>... suppliers) {
@@ -670,6 +682,7 @@ public abstract class Task implements Poolable {
 	 * and can be joined by using {@link ParallelReturningTask#join(Consumer)} or {@link ParallelReturningTask#join(Function)}.
 	 * @param tp Task type
 	 * @param suppliers Suppliers
+	 * @param <T> Supplier type
 	 * @return ParallelRetruning task
 	 */
 	public <T> ParallelReturningTask<T> thenParallel(TaskType tp, Supplier<T>... suppliers) {
@@ -684,6 +697,7 @@ public abstract class Task implements Poolable {
 	 * This task runs in async mode. To return back to original task, please use  {@link Task#getParentTask()}.
 	 * @param tp Task type
 	 * @param suppliers Suppliers
+	 * @param <T> Supplier type
 	 * @return ParallelRetruning task
 	 */
 	public <T> ParallelReturningTask<T> thenParallelWithoutWait(TaskType tp, Supplier<T>... suppliers) {
@@ -700,7 +714,7 @@ public abstract class Task implements Poolable {
 	 * @param runnables Runnables
 	 * @return Parallel Executing task
 	 */
-	public <T> ParallelExecutingTask<T> thenParallelSlow(RunnableToBeExecuted... runnables) {
+	public ParallelExecutingTask thenParallelSlow(RunnableToBeExecuted... runnables) {
 		return thenParallel(TaskType.SLOW, runnables);
 	}
 	
@@ -709,6 +723,7 @@ public abstract class Task implements Poolable {
 	 * and can be joined by using {@link ParallelReturningTask#join(Consumer)} or {@link ParallelReturningTask#join(Function)}.
 	 * This will be a slow task and all suppliers will run as slow task. 
 	 * @param suppliers Suppliers
+	 * @param <T> Supplier type
 	 * @return ParallelRetruning task
 	 */
 	public <T> ParallelReturningTask<T> thenParallelSlow(Supplier<T>... suppliers) {

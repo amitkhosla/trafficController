@@ -141,7 +141,7 @@ public abstract class ParallelTask<T> extends Task {
 
 	/**
 	 * Enqueue the task to its executor.
-	 * @param task
+	 * @param task task to be executed
 	 */
 	public void executeInternalTask(Task task) {
 		if (task.taskExecutor != null) {

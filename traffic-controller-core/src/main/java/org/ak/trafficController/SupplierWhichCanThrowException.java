@@ -7,8 +7,13 @@ import java.util.function.Supplier;
  * To overcome this, this new interface will be able to handle such scenarios. 
  * @author amit.khosla
  *
- * @param <T>
+ * @param <T> Type of data which will be returned by this supplier
  */
 public interface SupplierWhichCanThrowException<T> {
+	/**
+	 * Get the output.
+	 * @return T value
+	 * @throws Throwable throws when any failure in processing
+	 */
 	T get() throws Throwable;
 }

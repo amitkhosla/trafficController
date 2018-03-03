@@ -32,7 +32,7 @@ public class TaskExecutor {
 	
 	/**
 	 * Enqueue a task in the executor or execute notify tasks.
-	 * @param nextTask
+	 * @param nextTask Task which in being enqueued
 	 */
 	public void enque(Task nextTask) {
 		try{
@@ -102,6 +102,7 @@ public class TaskExecutor {
 	/**
 	 * Create task which will return some value which will be consumed by next task (if configured by calling @link {@link ReturningTask#thenConsume(java.util.function.Consumer)}).
 	 * @param supplier Supplier which will be run
+	 * @param <T> type of supplier
 	 * @return Returning task
 	 */
 	public <T> ReturningTask<T> of(SupplierWhichCanThrowException<T> supplier) {
@@ -126,6 +127,7 @@ public class TaskExecutor {
 	 * Result can be joined by next task using {@link ParallelReturningTask#join(java.util.function.Consumer)} which will create next task as joiner - consumer of list created by this task
 	 * or {@link ParallelReturningTask#join(java.util.function.Function)} which will create next task as joiner - function to retrieve data from list is set as next {@link ReturningTask}.
 	 * @param runnables Suppliers which needs to be run
+	 * @param <T> type of suppliers
 	 * @return ParallelExecuting task
 	 */
 	public <T> ParallelReturningTask<T> parallelExecutingTasks(Supplier<T>... runnables) {

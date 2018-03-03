@@ -22,9 +22,10 @@ public class ParallelReturningTask<T> extends ParallelTask<T> {
 	static Logger logger = Logger.getLogger(ParallelReturningTask.class.getName());
 	/**
 	 * Create or find from pool a parallel returning task and set params.
-	 * @param unique
-	 * @param taskType
-	 * @param suppliers
+	 * @param unique unique id
+	 * @param taskType task type
+	 * @param suppliers supplier
+	 * @param <K> Supplier type
 	 * @return
 	 */
 	static <K> ParallelReturningTask<K> getFromPool(int unique, TaskType taskType, Supplier<K>... suppliers) {
@@ -105,6 +106,7 @@ public class ParallelReturningTask<T> extends ParallelTask<T> {
 	/**
 	 * This method is used to join the the result and create next task which will transform the list to required type using the provided function.
 	 * @param merger Merging function
+	 * @param <K> type of new returning task
 	 * @return Returning task
 	 */
 	public <K> ReturningTask<K> join(Function<List<T>,K> merger) {
@@ -138,6 +140,7 @@ public class ParallelReturningTask<T> extends ParallelTask<T> {
 	 * This method is used to join the result and create next task which will transform the list to required type using the provided function.
 	 * This will run the joiner as slow task.
 	 * @param merger Merging function
+	 * @param <K> type of new returning task
 	 * @return Returning task
 	 */
 	public <K> ReturningTask<K> joinSlow(Function<List<T>,K> merger) {
@@ -176,11 +179,11 @@ public class ParallelReturningTask<T> extends ParallelTask<T> {
 	 * @param taskType Task type
 	 * @return Executable task which will run the merger
 	 */
-	protected ExecutableTask getJoiningTask(Consumer<List<T>> merger, TaskType tp) {
+	protected ExecutableTask getJoiningTask(Consumer<List<T>> merger, TaskType taskType) {
 		return ExecutableTask.getFromPool(uniqueNumber,()->{
 			List<T> list = get();
 			merger.accept(list);
-		}, tp);
+		}, taskType);
 	}
 	
 	/**
