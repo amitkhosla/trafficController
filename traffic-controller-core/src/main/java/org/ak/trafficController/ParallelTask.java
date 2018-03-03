@@ -14,6 +14,11 @@ import java.util.logging.Logger;
 public abstract class ParallelTask<T> extends Task {
 
 	static Logger logger = Logger.getLogger(ParallelTask.class.getName());
+	/**
+	 * Constructor to create parallel task.
+	 * @param unique Unique id
+	 * @param taskType Tasks type
+	 */
 	public ParallelTask(int unique, TaskType taskType) {
 		super(unique,taskType);
 	}
@@ -23,10 +28,23 @@ public abstract class ParallelTask<T> extends Task {
 	
 	
 	
+	/**
+	 * Add more tasks using runnables passed and assign these tasks provided executor and set them as passed task type.
+	 * @param taskType Task type
+	 * @param executor Executor
+	 * @param runnables Runnables
+	 */
 	public void addRunnables(TaskType taskType, TaskExecutor executor, RunnableToBeExecuted... runnables) {
 		addRunnables(taskType, executor, null, runnables);
 	}
 	
+	/**
+	 * Add more tasks using runnables passed and assign these tasks provided executor and set them as passed task type.
+	 * @param taskType Task type
+	 * @param executor Executor
+	 * @param name Name of the task for diagnostics
+	 * @param runnables Runnables
+	 */
 	public void addRunnables(TaskType taskType, TaskExecutor executor, String name, RunnableToBeExecuted... runnables) {
 		for (RunnableToBeExecuted runnable : runnables) {
 			ExecutableTask task = getExecutable(runnable, taskType);
@@ -36,35 +54,64 @@ public abstract class ParallelTask<T> extends Task {
 		}
 	}
 	
+	/**
+	 * Add runnable tasks to the parallel task.
+	 * @param runnables Runnables
+	 */
 	public void addRunnables(RunnableToBeExecuted... runnables) {
 		for (RunnableToBeExecuted runnable : runnables) {
 			tasks.add(getExecutable(runnable, TaskType.NORMAL));
 		}
 	}
 	
+	/**
+	 * Add runnable tasks to the parallel task. These new tasks will be slow tasks.
+	 * @param runnables Runnables
+	 */
 	public void addSlowRunnables(RunnableToBeExecuted... runnables) {
 		for (RunnableToBeExecuted runnable : runnables) {
 			tasks.add(getExecutable(runnable, TaskType.SLOW));
 		}
 	}
 	
+	/**
+	 * Adding a task to be run as one of the parallel tasks in this bunch.
+	 * @param task Task to be run as parallel
+	 */
 	public void addTask(Task task) {
 		task.parentTask = this.parentTask;
 		task.then(this::postTaskRun);
 		tasks.add(task);
 	}
 
+	/**
+	 * This task helps in creating executable task from runnable.
+	 * @param runnable Runnable
+	 * @param taskType Task type
+	 * @return Executable task which will run a part of this bunch
+	 */
 	protected ExecutableTask getExecutable(RunnableToBeExecuted runnable, TaskType taskType) {
 		ExecutableTask task = ExecutableTask.getFromPool(uniqueNumber,()->executeRunnable(runnable), taskType);
 		task.taskExecutor = this.taskExecutor;
 		return task;
 	}
 
+	/**
+	 * This is helper method to make sure that post running runnable cleanup is done to ensure the closure of the task.
+	 * @param runnable Runnable
+	 * @throws Throwable Throws when runnable thrown any
+	 */
 	public void executeRunnable(RunnableToBeExecuted runnable) throws Throwable {
 		runnable.run();
 		postTaskRun();
 	}
 	
+	/**
+	 * Simple logic to make bunch work async. 
+	 * First we set the task count at time of process start.
+	 * Then for each task we reduce the count.
+	 * And at the end when the count reduces to 0, we execute next task.
+	 */
 	protected void postTaskRun() {
 		int tasksLeft = tasksLeftRef.decrementAndGet();
 		//TaskExecutorNewTest.logMessages("tasks left ..." + tasksLeft + " for " + uniqueNumber);
@@ -80,6 +127,9 @@ public abstract class ParallelTask<T> extends Task {
 		executeCurrentTask();
 	}
 	
+	/**
+	 * We add all tasks to the executor.
+	 */
 	@Override
 	protected void executeCurrentTask() {
 		logger.finest("about to execute current task for unique id" + this.uniqueNumber);
@@ -89,6 +139,10 @@ public abstract class ParallelTask<T> extends Task {
 		};
 	}
 
+	/**
+	 * Enqueue the task to its executor.
+	 * @param task
+	 */
 	public void executeInternalTask(Task task) {
 		if (task.taskExecutor != null) {
 			taskExecutor.enque(task);
@@ -97,7 +151,6 @@ public abstract class ParallelTask<T> extends Task {
 		}
 	}
 	
-	///TODO - WE CAN ADD WAY TO ADD CHAIN THE SUB TASKS. TWO CLASSES CAN BE CREATED.
 
 	@Override
 	public void clean() {
