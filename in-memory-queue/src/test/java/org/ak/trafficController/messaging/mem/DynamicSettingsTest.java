@@ -42,7 +42,7 @@ public class DynamicSettingsTest {
 		for (int i=0;i<1000; i++) {
 			items.add(i);
 		}
-		queue.addAllFromList(items);
+		queue.addAllFromCollection(items);
 		sb.setLength(0);
 		dynamicSettings.adjust();
 		String output = sb.toString();

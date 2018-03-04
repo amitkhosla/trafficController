@@ -13,15 +13,34 @@ import java.util.function.Consumer;
  */
 public class InMemoryQueueManager {
 
+	/**
+	 * Queues mapping to this manager.
+	 */
 	protected Map<String, InMemoryQueue> queues = new HashMap<String, InMemoryQueue>();
 
+	/**
+	 * Dynamic setting registered to this manager.
+	 */
 	protected Map<String, DynamicSettings> dynamicSettings = new HashMap<>();
 	
+	/**
+	 * Initialize a queue with passed name, consumer and number of consumers.
+	 * The consumer passed is treated as direct consumer.
+	 * @param queueName Name of queue
+	 * @param consumer Consumer logic
+	 * @param numberOfConsumers Number of consumers
+	 * @param <T> type of consumer
+	 */
 	public <T> void initialize(String queueName, Consumer<T> consumer, int numberOfConsumers) {
 		InMemoryQueue<T> queue = registerQueueIfAbsent(queueName);
 		setConsumers(consumer, numberOfConsumers, queue);
 	}
 	
+	/**
+	 * This method sets the batch size which will be used by batch consumer for given queue having passed queue name.
+	 * @param queueName Queue name
+	 * @param batchSize batch size
+	 */
 	public void setBatchSize(String queueName, int batchSize) {
 		InMemoryQueue queue = queues.get(queueName);
 		if (queue != null) {
@@ -29,6 +48,14 @@ public class InMemoryQueueManager {
 		}
 	}
 	
+	/**
+	 * Initialize a queue with passed name, consumer and number of consumers.
+	 * The consumer passed is treated as batch consumer.
+	 * @param queueName Name of queue
+	 * @param consumer Consumer logic
+	 * @param numberOfConsumers Number of consumers
+	 * @param <T> type of consumer
+	 */
 	public <T> void initializeForBatch(String queueName, Consumer<List<T>> consumer, int numberOfConsumers) {
 		InMemoryQueue<T> queue = registerQueueIfAbsent(queueName);
 		setBatchConsumers(consumer, numberOfConsumers, queue);
@@ -37,6 +64,7 @@ public class InMemoryQueueManager {
 	/**
 	 * This makes sure only one queue is created for a given name.
 	 * @param queueName Name of the queue
+	 * @param <T> type of queue required
 	 * @return Queue for the given queue
 	 */
 	synchronized protected <T> InMemoryQueue<T> registerQueueIfAbsent(String queueName) {
@@ -55,6 +83,7 @@ public class InMemoryQueueManager {
 	 * @param consumer Consumer of the queue which is looking for working on data present in queue.
 	 * @param numberOfConsumers number of consumers required for queue to 
 	 * @param queue Queue on which we are looking for setting consumers.
+	 * @param <T> type of queue required
 	 */
 	protected <T> void setConsumers(Consumer<T> consumer,
 			int numberOfConsumers, InMemoryQueue<T> queue) {
@@ -69,6 +98,7 @@ public class InMemoryQueueManager {
 	 * @param consumer Consumer of the queue which is looking for working on data present in queue.
 	 * @param numberOfConsumers number of consumers required for queue to 
 	 * @param queue Queue on which we are looking for setting consumers.
+	 * @param <T> type of queue required
 	 */
 	protected <T> void setBatchConsumers(Consumer<List<T>> consumer,
 			int numberOfConsumers, InMemoryQueue<T> queue) {
@@ -77,6 +107,13 @@ public class InMemoryQueueManager {
 	}
 	
 	
+	/**
+	 * Adds an item in queue. If queue is not created till now, this method also creates one.
+	 * @param queueName Name of queue
+	 * @param item Item to be added
+	 * @return true if successfully adds item in queue
+	 * @param <T> type of queue required
+	 */
 	public <T> boolean addAndRegisterIfRequired(String queueName, T item) {
 		DynamicSettings<T> dynamicSetting = dynamicSettings.get(queueName);
 		if (dynamicSetting != null) {
@@ -87,21 +124,29 @@ public class InMemoryQueueManager {
 		return true;
 	}
 	
+	/**
+	 * Adds all items in collection to queue. If queue is not created till now, this method also creates one.
+	 * @param queueName Name of queue
+	 * @param item Collection
+	 * @param <T> type of queue required
+	 * @return true if successfully adds in queue
+	 */
 	public <T> boolean addAndRegisterIfRequiredForCollection(String queueName, Collection<T> item) {
 		DynamicSettings<T> dynamicSetting = dynamicSettings.get(queueName);
 		if (dynamicSetting != null) {
 			return dynamicSetting.addItemsInQueue(item);
 		}
 		InMemoryQueue<T> imq = registerQueueIfAbsent(queueName);
-		imq.addAllFromList(item);
+		imq.addAllFromCollection(item);
 		return true;
 	}
 	
 	/**
 	 * Add message to the queue.
-	 * @param queueName
-	 * @param item
-	 * @return
+	 * @param queueName name of queue
+	 * @param item Item to be added
+	 * @param <T> type of queue
+	 * @return true if successfully adds item to queue
 	 */
 	public <T> boolean add(String queueName, T item) {
 		DynamicSettings<T> dynamicSetting = dynamicSettings.get(queueName);
@@ -118,9 +163,10 @@ public class InMemoryQueueManager {
 	
 	/**
 	 * Add messages to the queue.
-	 * @param queueName
-	 * @param items
-	 * @return
+	 * @param queueName Name of queue
+	 * @param items Items to be added
+	 * @param <T> type of queue
+	 * @return true if successfully added
 	 */
 	public <T> boolean addItems(String queueName, Collection<T> items) {
 		DynamicSettings<T> dynamicSetting = dynamicSettings.get(queueName);
@@ -131,10 +177,17 @@ public class InMemoryQueueManager {
 		if (imq == null) {
 			return false;
 		}
-		imq.addAllFromList(items);
+		imq.addAllFromCollection(items);
 		return true;
 	}
 	
+	/**
+	 * Add listener to queue having passed name.
+	 * @param queueName Name of queue
+	 * @param consumer Consumer logic
+	 * @param numberOfConsumers Number of consumers
+	 * @param <T> type of queue
+	 */
 	public <T> void addListener(String queueName, Consumer<T> consumer, int numberOfConsumers) {
 		InMemoryQueue<T> queue = queues.get(queueName);
 		if (queue!=null) {
@@ -142,6 +195,13 @@ public class InMemoryQueueManager {
 		}
 	}
 	
+	/**
+	 * Add batch listener to queue having passed name
+	 * @param queueName Name of queue
+	 * @param consumer Consumer logic
+	 * @param numberOfConsumers Number of consumers
+	 * @param <T> type of queue
+	 */
 	public <T> void addBatchListener(String queueName, Consumer<List<T>> consumer, int numberOfConsumers) {
 		InMemoryQueue<T> queue = queues.get(queueName);
 		if (queue!=null) {
@@ -153,8 +213,9 @@ public class InMemoryQueueManager {
 	/**
 	 * Add message. If required create queue with no data.
 	 * WARN - This should be used with thorough analysis as in case you passed wrong name for adding, it will create extra queue.
-	 * @param queueName
-	 * @param item
+	 * @param queueName Name of queue
+	 * @param item Data to be added
+	 * @param <T> type of queue
 	 */
 	synchronized public <T> void addAndCreate(String queueName, T item) {
 		InMemoryQueue<T> imq = registerQueueIfAbsent(queueName);
@@ -188,18 +249,29 @@ public class InMemoryQueueManager {
 		return inMemoryQueue.isBatchConsumerSet() ? inMemoryQueue.getBatchConsumerCount() : 0;
 	}
 
+	/**
+	 * Set Number of direct consumers of queue having passed name.
+	 * @param queueName Name of queue
+	 * @param consumerCount Consumer count
+	 */
 	public void setConsumerCount(String queueName, int consumerCount) {
 		queues.get(queueName).setDirectConsumerCount(consumerCount);
 	}
 	
-	public void setBatchConsumerCount(String queueName, int i) {
-		queues.get(queueName).setBatchConsumerCount(i);
+	/**
+	 * Set number of batch consumers of queue having passed name.
+	 * @param queueName Name of queue
+	 * @param batchConsumerCount Batch consumer count to be set
+	 */
+	public void setBatchConsumerCount(String queueName, int batchConsumerCount) {
+		queues.get(queueName).setBatchConsumerCount(batchConsumerCount);
 	}
 	
 	/**
 	 * This method makes queue dynamic. By dynamic it means that number of consumer will increase and reduce on basis of load.
 	 * This method returns DynamicSettings by which one can configure particular queue behavior.
 	 * @param queueName Queue Name
+	 * @param <T> type of queue.
 	 * @return Dynamic settings
 	 */
 	public <T> DynamicSettings<T> setDynamic(String queueName) {

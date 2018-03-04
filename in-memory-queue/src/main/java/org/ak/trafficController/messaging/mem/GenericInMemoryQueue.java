@@ -26,6 +26,9 @@ public class GenericInMemoryQueue<T> {
 
 	static Logger logger = Logger.getLogger(GenericInMemoryQueue.class.getName());
 	
+	/**
+	 * Shutdown flag, when all consumers will stop working.
+	 */
 	private boolean hasShutdown;
 	
 	/**
@@ -53,14 +56,30 @@ public class GenericInMemoryQueue<T> {
 	 */
 	private Collection<String> directConsumersList = new ConcurrentLinkedQueue<>();
 	
+	/**
+	 * The instance of {@link ConcurrentLinkedQueue} containing the batch consumer list.
+	 */
 	private Collection<String> batchConsumersList = new ConcurrentLinkedQueue<>();
 
+	/**
+	 * Current items in queue.
+	 */
 	private AtomicLong numberOfItemsInQueue = new AtomicLong(0L);
 	
+	/**
+	 * Constructor of Generic in memory queue.
+	 * @param name Name of queue
+	 */
 	public GenericInMemoryQueue(String name) {
 		this.queueName = name;
 	}
 	
+	/**
+	 * Constructor which also configures batch size which is used by batch consumers.
+	 * Batch size set here is the maximum items in list a consumer can expect.
+	 * @param name Name of queue
+	 * @param batchSize Batch size
+	 */
 	public GenericInMemoryQueue(String name, int batchSize) {
 		this.queueName = name;
 		this.batchSize = batchSize;
@@ -110,6 +129,11 @@ public class GenericInMemoryQueue<T> {
 		}
 	}
 
+	/**
+	 * Log error if some exception occurs.
+	 * @param message Error message
+	 * @param e Exception to be logged
+	 */
 	private void logError(String message, Exception e) {
 		logger.log(Level.WARNING, message, e);
 	}
@@ -146,7 +170,12 @@ public class GenericInMemoryQueue<T> {
 		return sb.toString();
 	}
 
-	public StringBuilder buildErrorMessage(String consumerName) {
+	/**
+	 * Build error message using consumer name and queue name.
+	 * @param consumerName Consumer name
+	 * @return Message built in string builder
+	 */
+	protected StringBuilder buildErrorMessage(String consumerName) {
 		StringBuilder sb = new StringBuilder();
 		return sb.append("Exception occured in queue ").append(this.queueName)
 			.append(" for consumer : ").append(consumerName);
@@ -230,6 +259,12 @@ public class GenericInMemoryQueue<T> {
 		}
 	}
 
+	/**
+	 * Get batch data which will be used to pass to batch consumer.
+	 * This method tries to get maximum "batchsize" messages.
+	 * It will not wait if the number of messages is lesser.
+	 * @return List containing data
+	 */
 	protected List<T> getBatchData() {
 		int itemsPresentInOutputList = 0;
 		List<T> output = new ArrayList<>();
@@ -258,12 +293,20 @@ public class GenericInMemoryQueue<T> {
 		doNotify();
 	}
 
+	/**
+	 * This method Notify all consumers.
+	 * This is done whenever a new message arrives or a consumer is asked to stop.
+	 */
 	protected void doNotify() {
 		synchronized (dataQueue) {
 			dataQueue.notifyAll();
 		}
 	}
 	
+	/**
+	 * To cleanup, shutdown method should be called.
+	 * This method shutdown all consumers batch or direct.
+	 */
 	public void shutdown() {
 		this.hasShutdown = true;
 		directConsumersList.clear();
@@ -304,29 +347,33 @@ public class GenericInMemoryQueue<T> {
 		notifyConsumers();
 	}
 
+	/**
+	 * Get number of direct consumers.
+	 * @return Direct consumers count
+	 */
 	public int getDirectConsumerCount() {
 		return directConsumersList.size();
 	}
 
+	/**
+	 * Get batch consumer count.
+	 * @return Batch consumer count
+	 */
 	public int getBatchConsumerCount() {
 		return batchConsumersList.size();
 	}
 
 	/**
-	 * @return the hasShutdown
+	 * Have this queue shutdown?
+	 * @return Have this queue shutdown?
 	 */
 	public boolean isHasShutdown() {
 		return hasShutdown;
 	}
 
-	/**
-	 * @param hasShutdown the hasShutdown to set
-	 */
-	public void setHasShutdown(boolean hasShutdown) {
-		this.hasShutdown = hasShutdown;
-	}
 
 	/**
+	 * Get queue name.
 	 * @return the queueName
 	 */
 	public String getQueueName() {
@@ -334,13 +381,20 @@ public class GenericInMemoryQueue<T> {
 	}
 
 	/**
+	 * Set name of the queue
 	 * @param queueName the queueName to set
+	 * @return This object for further use
 	 */
-	public void setQueueName(String queueName) {
+	public GenericInMemoryQueue<T> setQueueName(String queueName) {
 		this.queueName = queueName;
+		return this;
 	}
 
 	/**
+	 * Batch size which will be used by batch consumers.
+	 * Any batch consumer will receive maximum of this many data items in list.
+	 * The batch consumer might get fewer amount as well as consumers are called with 
+	 * only current data in queue and not waited for this list to be filled
 	 * @return the batchSize
 	 */
 	public int getBatchSize() {
@@ -348,13 +402,21 @@ public class GenericInMemoryQueue<T> {
 	}
 
 	/**
+	 * Setter Batch size which will be used by batch consumers.
+	 * Any batch consumer will receive maximum of this many data items in list.
+	 * The batch consumer might get fewer amount as well as consumers are called with 
+	 * only current data in queue and not waited for this list to be filled
 	 * @param batchSize the batchSize to set
+	 * @return This object for further use
 	 */
-	public void setBatchSize(int batchSize) {
+	public GenericInMemoryQueue<T> setBatchSize(int batchSize) {
 		this.batchSize = batchSize;
+		return this;
 	}
 
 	/**
+	 * Get number of items in queue. 
+	 * This method is used for diagnostics or by some tuner which want to resize number of consumers.
 	 * @return the numberOfItemsInQueue
 	 */
 	public Long getNumberOfItemsInQueue() {
@@ -362,12 +424,23 @@ public class GenericInMemoryQueue<T> {
 	}
 
 	/**
+	 * Set number of items in queue. 
+	 * This method is used for diagnostics or by some tuner which want to resize number of consumers.
 	 * @param numberOfItemsInQueue the numberOfItemsInQueue to set
+	 * @return This object for further use
 	 */
-	public void setNumberOfItemsInQueue(AtomicLong numberOfItemsInQueue) {
+	public GenericInMemoryQueue<T> setNumberOfItemsInQueue(AtomicLong numberOfItemsInQueue) {
 		this.numberOfItemsInQueue = numberOfItemsInQueue;
+		return this;
 	}
 
+	/**
+	 * This method clears the current queue and pass the data to the consumer.
+	 * Post this data is consumed by cleaner, queue is cleaned.
+	 * This method is used by scenarios where the messages are allowed to be wiped off to save the health of the system.
+	 * This method is called by some tuner. 
+	 * @param preCleanHandlers Cleaners
+	 */
 	protected void clear(Consumer<Queue<T>>... preCleanHandlers) {
 		if (preCleanHandlers != null) {
 			for (Consumer<Queue<T>> c : preCleanHandlers) {
@@ -378,20 +451,41 @@ public class GenericInMemoryQueue<T> {
 		this.dataQueue.clear();
 	}
 	
+	/**
+	 * Removes all direct consumers.
+	 * This method is called either at shutdown or we want to move to different logic of processing the data.
+	 */
 	public void removeAllDirectConsumers() {
 		this.directConsumersList.clear();
 		doNotify();
 	}
 	
+	/**
+	 * Remove all batch consumers.
+	 * This method is called either at shutdown or we want to move to different logic of processing the data.
+	 */
 	public void removeAllBatchConsumers() {
 		this.batchConsumersList.clear();
 		doNotify();
 	}
 
+	/**
+	 * This is the wait time for which different consumers wait for some message. 
+	 * Post wait, the consumers retry finding data and if not found go to wait again.
+	 * In rare case if some notification is lost, this mechanism guarantees that messages will be picked if present post this time. 
+	 * @return Wait time
+	 */
 	public int getWaitTimeout() {
 		return waitTimeout;
 	}
 
+	/**
+	 * This is the wait time for which different consumers wait for some message. 
+	 * Post wait, the consumers retry finding data and if not found go to wait again.
+	 * In rare case if some notification is lost, this mechanism guarantees that messages will be picked if present post this time.
+	 * @param waitTimeout wait time out to be set
+	 * @return This object to further use
+	 */
 	public GenericInMemoryQueue<T> setWaitTimeout(int waitTimeout) {
 		this.waitTimeout = waitTimeout;
 		return this;

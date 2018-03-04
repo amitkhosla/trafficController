@@ -42,7 +42,7 @@ public class InMemoryQueueTest {
 		for (int i=100;i<1000;i++) {
 			input.add(i);
 		}
-		imq.addAllFromList(input);
+		imq.addAllFromCollection(input);
 		Utils.sleep(5);
 		for (int i=100;i<1000;i++) {
 			Assert.assertTrue(i+"should be present but found missing",retrievedFromQueue.contains(i));
