@@ -67,41 +67,77 @@ public @interface Consumer {
 	 */
 	long numberOfMessagesInQueueWhenShouldTryToReduceConsumers() default 100;
 	
-	/**
-	 * 
-	 * @return
-	 */
-	int maxNumberOfMessagesWhenExceptionOrSomeCleanupShouldStart() default Integer.MAX_VALUE;
-	
 	
 	/**
-	 * @return
+	 * If the threshold of tooo much data is reached, should we throw exception to producer till we do not recover.
+	 * If this configured, no retries will be performed.
+	 * @return Should throw exception 
 	 */
 	boolean shouldThrowExceptionWhenHighLimitReach() default false;
 
 
+	/**
+	 * Should addition is stopped at threshold. This means the messages will be lost. So, recommended only in cases where messages can be lost.
+	 * @return
+	 */
 	boolean shouldStopAddingAtThreshold() default false;
 
 
+	/**
+	 * Should we clear the queue in case threshold is reached.
+	 * @return Should clear threshold
+	 */
 	boolean shoulClearOnThreshold() default false;
 
 
+	/**
+	 * Should retry for few times before failing to add data in queue.
+	 * @return should retry sender till threshold not recovered
+	 */
 	boolean shouldRetrySenderTillThresholdNotRecovered() default false;
 
 
+	/**
+	 * Should throw exception if all retries are over at producer side.
+	 * @return Should throw exception post retry
+	 */
 	boolean shouldThrowExceptionPostRetry() default false;
 
 
-	long numberOfRetriesBeforeThrowingExceptionWhenThreshold() default 5l;
+	/**
+	 * Number of retries before throwing exception.
+	 * @return Number of retries
+	 */
+	long numberOfRetriesBeforeThrowingExceptionWhenThreshold() default 500l;
 
+	/**
+	 * Sleep time in milliseconds before trying next sleep time.
+	 * @return Sleep time between retries
+	 */
 	long sleepTimeBetweenRetriesWhenThreshold() default 50l;
 	
+	/**
+	 * Should throw exception when threshold to add.
+	 * @return Should throw exception when threshold is reached
+	 */
 	boolean shouldThrowExceptionWhenThresholdAtAdd() default false;
 
-	long messagesCountThreshold() default 10000;
+	/**
+	 * In case the load is too high and we want our system to remain safe, we can opt for this to start cleanup or throw exception to producer that they cannot add more data. 
+	 * @return Messages count when we say that data is too much
+	 */
+	long messagesCountThreshold() default 1_00_000;
 
+	/**
+	 * Is it a batch consumer? Batch consumer is one which accept the items in list.
+	 * @return Is it a batch consumer?
+	 */
 	boolean batch() default false;
 
+	/**
+	 * For any batch consumer this is the maximum number of items that will be consumed in one go.
+	 * @return Batch size
+	 */
 	int batchSize() default 10;
 
 
