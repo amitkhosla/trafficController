@@ -78,7 +78,7 @@ public @interface Consumer {
 
 	/**
 	 * Should addition is stopped at threshold. This means the messages will be lost. So, recommended only in cases where messages can be lost.
-	 * @return
+	 * @return Should stop adding at threshold
 	 */
 	boolean shouldStopAddingAtThreshold() default false;
 

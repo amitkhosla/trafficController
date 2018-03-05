@@ -37,7 +37,7 @@ public @interface Queued {
 	 * Consumer method which should be used as consumer of messages produced by this.
 	 * This will register this method specified in {@link Queued#consumerClass()} as consumer of this message.
 	 * This is not required if the consumer is registered by calling it directly.
-	 * @return
+	 * @return Consumer method
 	 */
 	String consumerMethod() default "";
 	
