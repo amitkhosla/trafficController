@@ -31,12 +31,22 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 
 
+/**
+ * This class handles task handling annotations (Controlled, Submit, Parallel, Join).
+ * Controlled if annotated, in normal flow will run in specified executor. This helps in throttling as only specified number of tasks can run at a time.
+ * Submit if annotated, method is submitted to task executor will be run async without and won't make calling thread to wait for completion of logic.
+ * Parallel if annotated, all method calls to Controlled annotated methods is made in parallel. Join annotated method joins back the the result created by controlled annotated methods.
+ * @author amit.khosla
+ */
 @Aspect
 @Named
 public class AnnotationSupportImpl {
 
 	Logger logger = Logger.getLogger(AnnotationSupportImpl.class.getName());
 	
+	/**
+	 * Parallel id
+	 */
 	AtomicInteger parallelId = new AtomicInteger(0);
 	
 	@Inject
@@ -45,6 +55,17 @@ public class AnnotationSupportImpl {
 	@Inject
 	ParallelJoinHelper parallelJoinHelper;
 	
+	/**
+	 * Handles Parallel annotated methods. 
+	 * Parallel if annotated, all method calls to Controlled annotated methods is made in parallel. Join annotated method joins back the the result created by controlled annotated methods.
+	 * It first execute the annotated method and creates task chain to be run in parallel followed by a joiner method which will join these results.
+	 * Parallel should be used only where we are calling different methods annotated with controlled and in different class to allow AOP play its work.
+	 * Output returned will be the output from Join operation or the last operation.
+	 * @param joinPoint Join point
+	 * @param parallel Parallel
+	 * @return Return output of the operation
+	 * @throws Throwable In case of any exception in processing
+	 */
 	@Around("execution(@org.ak.trafficController.annotations.api.Parallel * *(..)) && @annotation(parallel)")
 	 public Object runParallel(ProceedingJoinPoint joinPoint, Parallel parallel) throws Throwable {
 		int currentParallelId = parallelId.incrementAndGet();
@@ -68,38 +89,69 @@ public class AnnotationSupportImpl {
 		parallelJoinHelper.setTask(thenParallel); //set dummy task
 		//}
 		if (!isSubParallelTask) {
-			AtomicReference<Object> output = new AtomicReference<Object>(joinPoint.proceed());
-			Task cleanUpTask = parallelJoinHelper.getTask().then(()->{
-				output.set(performCleanup(currentParallelId));
-			});
-			cleanUpTask.setName("Clean up task " + currentParallelId);
-			parallelJoinHelper.setTask(cleanUpTask);
-			//if (((MethodSignature) joinPoint.getSignature()).
-			ParallelJoinHelper.taskChain.get().start(100000000);
-			parallelJoinHelper.removeTask();
-			Object val = output.get();
-			if (val != null && val.getClass() == JoinResult.class) {
-				val = ((JoinResult) val).result;
-			}
+			Object val = directParallelTaskHandling(joinPoint, currentParallelId, parallel);
 			return val;
 		} else {
 			joinPoint.proceed();
 			if (originalTask instanceof ParallelTask) {
-				Task task = parallelJoinHelper.getTask().then(()->{
-					Object result = performCleanup(currentParallelId);
-					if (Objects.nonNull(result)) {
-						ParallelJoinHelper.putObject(earlierParallelTaskId.get(), taskId.get(), result);
-					}
-				});
-				((ParallelTask) originalTask).addTask(thisParallelTask);
-				parallelJoinHelper.setTask(originalTask);
-				ParallelJoinHelper.removeParallelId(currentParallelId);
-				ParallelJoinHelper.setParallelTaskId(earlierParallelTaskId.get());
+				subProcessHandling(currentParallelId, taskId, earlierParallelTaskId, originalTask, thisParallelTask);
 			}
 			return null;
 		}
 	}
+
+	/**
+	 * Sub process handling. This method will be called while handling Parallel in case where parallel is being called inside another parallel flow.
+	 * @param currentParallelId Current parallel id
+	 * @param taskId Task id
+	 * @param earlierParallelTaskId Earlier parallel task id
+	 * @param originalTask Original task
+	 * @param thisParallelTask Current parallel task
+	 */
+	protected void subProcessHandling(int currentParallelId, AtomicInteger taskId, AtomicInteger earlierParallelTaskId,
+			Task originalTask, ExecutableTask thisParallelTask) {
+		Task task = parallelJoinHelper.getTask().then(()->{
+			Object result = performCleanup(currentParallelId);
+			if (Objects.nonNull(result)) {
+				ParallelJoinHelper.putObject(earlierParallelTaskId.get(), taskId.get(), result);
+			}
+		});
+		((ParallelTask) originalTask).addTask(thisParallelTask);
+		parallelJoinHelper.setTask(originalTask);
+		ParallelJoinHelper.removeParallelId(currentParallelId);
+		ParallelJoinHelper.setParallelTaskId(earlierParallelTaskId.get());
+	}
+
+	/**
+	 * Direct process handling. This method will be called while handling parallel in case where it is not called from another parallel flow.
+	 * @param joinPoint Join point
+	 * @param currentParallelId Current parallel id
+	 * @param parallel Parallel
+	 * @return Value of the tasks execution
+	 * @throws Throwable In case of any issue in processing
+	 */
+	protected Object directParallelTaskHandling(ProceedingJoinPoint joinPoint, int currentParallelId, Parallel parallel) throws Throwable {
+		AtomicReference<Object> output = new AtomicReference<Object>(joinPoint.proceed());
+		Task cleanUpTask = parallelJoinHelper.getTask().then(()->{
+			output.set(performCleanup(currentParallelId));
+		});
+		cleanUpTask.setName("Clean up task " + currentParallelId);
+		parallelJoinHelper.setTask(cleanUpTask);
+		//if (((MethodSignature) joinPoint.getSignature()).
+		ParallelJoinHelper.taskChain.get().start(parallel.waitTimeInMilliSeconds());
+		parallelJoinHelper.removeTask();
+		Object val = output.get();
+		if (val != null && val.getClass() == JoinResult.class) {
+			val = ((JoinResult) val).result;
+		}
+		return val;
+	}
 	
+	/**
+	 * Cleanup of parallel process and return the output.
+	 * @param currentParallelId Current parallel id for which we need cleanup and value
+	 * @return Data created by join task or last controlled task
+	 */
 	protected Object performCleanup(int currentParallelId) {
 		Map<Integer, Object> map = parallelJoinHelper.map.get(currentParallelId);
 		Object obj = map.get((map.size()));
@@ -107,6 +159,14 @@ public class AnnotationSupportImpl {
 		return obj;
 	}
 
+	/**
+	 * Handles Async operation where user is looking to submit something to get processed but calling thread should not wait for it.
+	 * If called in Parallel flow, will be added as a async task/
+	 * @param joinPoint Join point
+	 * @param async Async
+	 * @return Returns null if no exception
+	 * @throws Throwable In case of exception in execution of annotated method
+	 */
 	@Around("execution(@org.ak.trafficController.annotations.api.Submit * *(..)) && @annotation(async)")
 	 public Object runAsync(ProceedingJoinPoint joinPoint, Submit async) throws Throwable {
 		
@@ -137,10 +197,24 @@ public class AnnotationSupportImpl {
 		return null;
 	}
 
+	/**
+	 * Get core task type for given annotations task type.
+	 * @param taskType Task type
+	 * @return Core task type
+	 */
 	protected org.ak.trafficController.Task.TaskType convertAnnotationTaskTypeToFrameworkTaskType(TaskType taskType) {
 		return taskType == TaskType.NORMAL ? org.ak.trafficController.Task.TaskType.NORMAL : org.ak.trafficController.Task.TaskType.SLOW;
 	}
 
+	/**
+	 * Handles Join operation.
+	 * Annotated method will be called with exactly same number of attributes for which non null data was returned by controlled methods.
+	 * If we have 4 methods defined and out of which 2 methods returned some value, join annotated method is expected to expect only these two methods in the same sequence as they would have called sequentially.
+	 * @param joinPoint Join point
+	 * @param join Join
+	 * @return This method will return null but will set output against its id in parallel map
+	 * @throws Throwable In case there is issue in processing
+	 */
 	@Around("execution(@org.ak.trafficController.annotations.api.Join * *(..)) && @annotation(join)")
 	public Object runJoin(ProceedingJoinPoint joinPoint, Join join) throws Throwable {
 		int taskId = parallelJoinHelper.getObjectKeyForParalleldTask();
@@ -163,6 +237,11 @@ public class AnnotationSupportImpl {
 		return null;
 	}
 	
+	/**
+	 * Get the objects array from list so as to call the required join annotated method.
+	 * @param list List containing objects.
+	 * @return Object[] containing all objects present in list
+	 */
 	protected Object[] getObjectArrayFromList(List<Object> list) {
 		Object[] output = new Object[list.size()];
 		for (int i=0; i<list.size(); i++) {
@@ -171,9 +250,20 @@ public class AnnotationSupportImpl {
 		return output;
 	}
 
+	/**
+	 * This class object will act as notification that some joiner called till this place, also it contains the data.
+	 * @author amit.khosla
+	 *
+	 */
 	static class JoinResult {
 		Object result;
 	}
+	/**
+	 * From the parallel id, read all objects created by different controlled methods ran in parallel flow. 
+	 * @param list List to be filled
+	 * @param parallelTaskId Parallel task id
+	 * @param taskId Task id
+	 */
 	protected void addAllResultObjectsTillNowInList(List<Object> list, int parallelTaskId, int taskId) {
 		Map<Integer, Object> map = parallelJoinHelper.map.get(parallelTaskId);
 		for (int i=0;i<taskId;i++) {
@@ -192,9 +282,19 @@ public class AnnotationSupportImpl {
 		}
 	}
 
+	/**
+	 * Handles controlled annotated methods.
+	 * Controlled annotated methods are run in given executor. Current task waits for the execution to complete.
+	 * This helps in throttling the execution, i.e., at a given time only specified number of executions are allowed for given process.
+	 * In case it is running in Parallel flow, this just add it in task chain which will be handled in parallel.
+	 * @param joinPoint Join point
+	 * @param controlled Controlled
+	 * @return Output of the annotated method
+	 * @throws Throwable In case of exception in annotated mehtod
+	 */
 	@Around("execution(@org.ak.trafficController.annotations.api.Controlled * *(..)) && @annotation(parallel)")
-	 public Object runControlled(ProceedingJoinPoint joinPoint, Controlled parallel) throws Throwable {
-		TaskExecutorDetails taskExecutorDetail = taskHelper.getTaskExecutor(parallel, joinPoint);
+	 public Object runControlled(ProceedingJoinPoint joinPoint, Controlled controlled) throws Throwable {
+		TaskExecutorDetails taskExecutorDetail = taskHelper.getTaskExecutor(controlled, joinPoint);
 		Task task = ParallelJoinHelper.getTask();
 		boolean taskExecutorPresent = TaskExecutorsInUseThreadLocal.isTaskExecutorPresent(taskExecutorDetail.getName());
 		if (taskExecutorPresent) {
@@ -203,27 +303,28 @@ public class AnnotationSupportImpl {
 				return joinPoint.proceed();
 			}
 		}
-		String nameForTheTaskExecutor = getNameForTaskExecutor(parallel, taskExecutorDetail);
+		String nameForTheTaskExecutor = getNameForTaskExecutor(controlled, taskExecutorDetail);
 		TaskExecutor taskExecutor = taskExecutorDetail.getTaskExecutor();
 		if (task !=null) {
-			taskExecutor = addToTaskChainAsCalledFromParallel(joinPoint, parallel, task, taskExecutorPresent,
+			taskExecutor = addToTaskChainAsCalledFromParallel(joinPoint, controlled, task, taskExecutorPresent,
 					nameForTheTaskExecutor, taskExecutor);
 			return null;
 		}
 			
-		return executeControlled(joinPoint, parallel, nameForTheTaskExecutor, taskExecutor);
+		return executeControlled(joinPoint, controlled, nameForTheTaskExecutor, taskExecutor);
 	}
 
 	/**
-	 * @param joinPoint
-	 * @param parallel
-	 * @param task
-	 * @param taskExecutorPresent
-	 * @param nameForTheTaskExecutor
-	 * @param taskExecutor
-	 * @return
+	 * Add to task chain when Controlled called from parallel flow.
+	 * @param joinPoint Join point
+	 * @param controlled Controlled
+	 * @param task Parallel Task
+	 * @param taskExecutorPresent Is task executor present
+	 * @param nameForTheTaskExecutor Name of task executor
+	 * @param taskExecutor Task executor
+	 * @return Task executor
 	 */
-	protected TaskExecutor addToTaskChainAsCalledFromParallel(ProceedingJoinPoint joinPoint, Controlled parallel,
+	protected TaskExecutor addToTaskChainAsCalledFromParallel(ProceedingJoinPoint joinPoint, Controlled controlled,
 			Task task, boolean taskExecutorPresent, String nameForTheTaskExecutor, TaskExecutor taskExecutor) {
 		int taskId = parallelJoinHelper.getObjectKeyForParalleldTask();
 		int parallelTaskId = ParallelJoinHelper.getParallelId();
@@ -232,6 +333,7 @@ public class AnnotationSupportImpl {
 		RunnableToBeExecuted runnableToBeExecuted = ()->{
 			ParallelJoinHelper.putObject(parallelTaskId, taskId, joinPoint.proceed());
 		};
+		/// TODO - IS this check required?
 		if (taskExecutorPresent) {
 			taskExecutor = task.getTaskExecutor();
 		} else {
@@ -248,20 +350,25 @@ public class AnnotationSupportImpl {
 			};
 		}
 		String name = "ParallelId:" + parallelTaskId + " taskId:" +taskId + " " + getTaskNameFromJoinPoint(joinPoint);
-		org.ak.trafficController.Task.TaskType taskType = convertAnnotationTaskTypeToFrameworkTaskType(parallel.taskType());
+		org.ak.trafficController.Task.TaskType taskType = convertAnnotationTaskTypeToFrameworkTaskType(controlled.taskType());
 		((ParallelTask) task).addRunnables(taskType, taskExecutor,name, runnableToBeExecuted);
 		return taskExecutor;
 	}
 
+	/**
+	 * Get task name from join point
+	 * @param joinPoint Join [pomt
+	 * @return
+	 */
 	private String getTaskNameFromJoinPoint(ProceedingJoinPoint joinPoint) {
-		// TODO Auto-generated method stub
 		return joinPoint.toShortString();
 	}
 
 	/**
-	 * @param parallel
-	 * @param taskExecutorDetail
-	 * @return
+	 * Get name of task executor for controlled
+	 * @param parallel Controlled
+	 * @param taskExecutorDetail Task executor details
+	 * @return Name of task executor
 	 */
 	protected String getNameForTaskExecutor(Controlled parallel, TaskExecutorDetails taskExecutorDetail) {
 		StringBuilder nameOfTaskExecutorBuilder = new StringBuilder();
@@ -274,12 +381,13 @@ public class AnnotationSupportImpl {
 	}
 
 	/**
-	 * @param joinPoint
-	 * @param parallel
-	 * @param nameForTheTaskExecutor
-	 * @param taskExecutor
-	 * @return
-	 * @throws Throwable
+	 * Execute controlled in direct flow.
+	 * @param joinPoint Join point
+	 * @param parallel Controlled
+	 * @param nameForTheTaskExecutor Name of task executor
+	 * @param taskExecutor Task executor
+	 * @return Output of annotated method
+	 * @throws Throwable In case annotated method throws exception
 	 */
 	protected Object executeControlled(ProceedingJoinPoint joinPoint, Controlled parallel,
 			String nameForTheTaskExecutor, TaskExecutor taskExecutor) throws Throwable {
