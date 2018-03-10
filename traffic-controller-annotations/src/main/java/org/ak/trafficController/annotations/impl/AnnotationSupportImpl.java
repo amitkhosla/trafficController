@@ -292,7 +292,7 @@ public class AnnotationSupportImpl {
 	 * @return Output of the annotated method
 	 * @throws Throwable In case of exception in annotated mehtod
 	 */
-	@Around("execution(@org.ak.trafficController.annotations.api.Controlled * *(..)) && @annotation(parallel)")
+	@Around("execution(@org.ak.trafficController.annotations.api.Controlled * *(..)) && @annotation(controlled)")
 	 public Object runControlled(ProceedingJoinPoint joinPoint, Controlled controlled) throws Throwable {
 		TaskExecutorDetails taskExecutorDetail = taskHelper.getTaskExecutor(controlled, joinPoint);
 		Task task = ParallelJoinHelper.getTask();
