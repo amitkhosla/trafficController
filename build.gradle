@@ -2,6 +2,8 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'eclipse'
     apply plugin: 'maven-publish'
+    apply plugin: 'signing'
+	apply plugin: 'maven'
     repositories {
        mavenCentral()
     }
@@ -10,7 +12,6 @@ subprojects {
         testCompile 'junit:junit:4.8.2'
     }
 
-    version = '1.0'
 
     jar {
         manifest.attributes provider: 'ak'
@@ -23,68 +24,90 @@ subprojects {
           }
       }
     }
+	signing {
+		sign configurations.archives
+	}
+	task javadocJar (type: Jar, dependsOn: javadoc) { // (1)
+		classifier = 'javadoc'
+		from javadoc.destinationDir
+	}
+	task sourcesJar(type: Jar) {
+		classifier = 'sources'
+		from sourceSets.main.allSource
+	}
+	publishing {
+		publications {
+			myPublication(MavenPublication) {
+				artifact (javadocJar) { // (3)
+					classifier = 'javadoc'
+				}
+			}
+		}
+	}
 
-task javadocJar (type: Jar, dependsOn: javadoc) { // (1)
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-}
-publishing {
-    publications {
-        myPublication(MavenPublication) {
-            artifact (javadocJar) { // (3)
-                classifier = 'javadoc'
-            }
-        }
-    }
-}
 
 
-task sourceJar (type : Jar) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
-publishing {
-    publications {
-        myPublication(MavenPublication) {
-            artifact (sourceJar) { // (2)
-                classifier = 'sources'
-            }
-        }
-    }
-}
-publishing {
-    publications {
-        myPublication (MavenPublication) {
-            from components.java
-            pom.withXml {
-                asNode().children().last() + {
-                    resolveStrategy = Closure.DELEGATE_FIRST
-                    name 'traffic-controller'
-                    description 'To handle different aspects like Throttling, Event based programing, in memory queue, object pooling.'
-                    url projectUrl
-                    scm {
-                        url 'https://github.com/amitkhosla/trafficController'
-                        connection 'scm:git:git://github.com/amitkhosla/trafficController'
-                        developerConnection 'scm:git:ssh:git@github.com:amitkhosla/trafficController.git'
-                    }
-                    licenses {
-                        license {
-                            name 'The Apache Software License, Version 2.0'
-                            url 'http://www.apache.org/license/LICENSE-2.0.txt'
-                            distribution 'repo'
-                        }
-                    }
-                    developers {
-                        developer {
-                            id 'amitkhosla'
-                            name 'Your Name'
-                            email 'amitkhosla.jobs@gmail.com'
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
+	task sourceJar (type : Jar) {
+		classifier = 'sources'
+		from sourceSets.main.allSource
+	}
+	publishing {
+		publications {
+			myPublication(MavenPublication) {
+				artifact (sourceJar) { // (2)
+					classifier = 'sources'
+				}
+			}
+		}
+	}
+
+	artifacts {
+		archives javadocJar, sourcesJar
+	}
+
+	uploadArchives {
+	  repositories {
+		mavenDeployer {
+		  beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+		  repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+			authentication(userName: ossrhUsername, password: ossrhPassword)
+		  }
+
+		  snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+			authentication(userName: ossrhUsername, password: ossrhPassword)
+		  }
+
+		  pom.project {
+			name 'Traffic controller'
+			packaging 'jar'
+			// optionally artifactId can be defined here 
+			description 'This deals with different aspects like In memory queue, throttling, event management etc'
+			url 'https://github.com/amitkhosla/trafficController'
+
+			scm {
+			   url 'https://github.com/amitkhosla/trafficController'
+			   connection 'scm:git:git://github.com/amitkhosla/trafficController'
+			   developerConnection 'scm:git:ssh:git@github.com:amitkhosla/trafficController.git'
+			}
+			licenses {
+				license {
+					name 'The Apache Software License, Version 2.0'
+					url 'http://www.apache.org/license/LICENSE-2.0.txt'
+					distribution 'repo'
+				}
+			}
+			developers {
+				developer {
+					id 'amitkhosla'
+					name 'Amit Khosla'
+					email 'amitkhosla.jobs@gmail.com'
+				}
+			}
+
+		  }
+		}
+	  }
+	}
 
 }
