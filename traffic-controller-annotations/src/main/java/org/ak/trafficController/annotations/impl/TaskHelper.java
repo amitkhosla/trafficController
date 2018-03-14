@@ -5,6 +5,8 @@ import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.inject.Named;
 
 import org.ak.trafficController.TaskExecutor;
@@ -258,7 +260,7 @@ public class TaskHelper {
 	/**
 	 * Get number for given percentage.
 	 * @param numericValue Value as percentage
-	 * @return Value
+	 * @return Value Percentage value
 	 */
 	private int getPercentageValue(int numericValue) {
 		if (numericValue > 0) {
@@ -274,6 +276,7 @@ public class TaskHelper {
 	/**
 	 * Shut down all the task executors created by this class.
 	 */
+	@PreDestroy
 	public void shutdown() {
 		for (TaskExecutor taskExecutor : taskExecutors.values()) {
 			taskExecutor.shutdown();
