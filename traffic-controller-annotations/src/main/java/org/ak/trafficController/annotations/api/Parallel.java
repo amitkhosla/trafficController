@@ -16,7 +16,7 @@ import java.lang.annotation.RetentionPolicy;
 public @interface Parallel {
 	/**
 	 * This defines the time for which this parallel task execution should be waited for before declaring it not working and throwing exception.
-	 * 300,000 milliseconds (5 minutes) is default value. 
+	 * 1,800,000 milliseconds (30 minutes) is default value. 
 	 * @return wait time in milliseconds
 	 */
 	int waitTimeInMilliSeconds() default 30*60*1000;
