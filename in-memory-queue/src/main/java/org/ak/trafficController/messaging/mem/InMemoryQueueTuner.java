@@ -66,8 +66,16 @@ public class InMemoryQueueTuner {
 	 * Tuning process. Tune all registered managers and settings.
 	 */
 	public void tune() {
-		queueManagers.parallelStream().forEach(this::tune);
-		dynamicSettings.parallelStream().forEach(setting->setting.adjust());
+		List<InMemoryQueueManager> managers;
+		synchronized (queueManagers) {
+			managers = new ArrayList<>(queueManagers);
+		}
+		managers.parallelStream().forEach(this::tune);
+		List<DynamicSettings> settings;
+		synchronized (dynamicSettings) {
+			settings = new ArrayList(dynamicSettings);
+		}
+		settings.parallelStream().forEach(setting->setting.adjust());
 	}
 	
 	/**
@@ -109,5 +117,29 @@ public class InMemoryQueueTuner {
 	 */
 	public void shutdown() {
 		this.shouldContinue = false;
+	}
+	
+	/**
+	 * Add in memory queue manager to start tuning of the same.
+	 * @param manager Manager having queues to be tuned 
+	 * @return Self for further use
+	 */
+	public InMemoryQueueTuner addManager(InMemoryQueueManager manager) {
+		synchronized (queueManagers) {
+			this.queueManagers.add(manager);
+		}
+		return this;
+	}
+	
+	/**
+	 * Add dynamic setting to start tuning of the same.
+	 * @param setting Dynamic setting to be tuned 
+	 * @return Self for further use
+	 */
+	public InMemoryQueueTuner addDynamicSetting(DynamicSettings setting) {
+		synchronized (dynamicSettings) {
+			this.dynamicSettings.add(setting);
+		}
+		return this;
 	}
 }
