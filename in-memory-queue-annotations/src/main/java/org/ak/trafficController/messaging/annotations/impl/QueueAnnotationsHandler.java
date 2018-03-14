@@ -13,6 +13,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -20,6 +22,7 @@ import org.ak.trafficController.messaging.annotations.Consumer;
 import org.ak.trafficController.messaging.annotations.Queued;
 import org.ak.trafficController.messaging.mem.DynamicSettings;
 import org.ak.trafficController.messaging.mem.InMemoryQueueManager;
+import org.ak.trafficController.messaging.mem.InMemoryQueueTuner;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -54,6 +57,34 @@ public class QueueAnnotationsHandler {
 	 * Manager to map queues.
 	 */
 	InMemoryQueueManager manager = new InMemoryQueueManager();
+	
+	/**
+	 * Tuner to tune the queues which are enabled for dynamic settings.
+	 */
+	InMemoryQueueTuner tuner = new InMemoryQueueTuner(manager);
+	
+	/**
+	 * Sleep time after which it will be tried to adjust.
+	 */
+	long sleepInterval = 1000L;
+
+	/**
+	 * Initialize the tuner.
+	 */
+	@PostConstruct
+	public void init() {
+		tuner.setSleepInterval(sleepInterval).startTuning();
+	}
+	
+	/**
+	 * Shutdown all queues created and also shutdown tuner.
+	 * This will be run while unloading of this object, which is most likely while shutdown of application.
+	 */
+	@PreDestroy
+	public void shutdown() {
+		tuner.shutdown();
+		manager.shutdown();
+	}
 
 	/**
 	 * Queues name mappings to save again finding the name from join point.
