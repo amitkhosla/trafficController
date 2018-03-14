@@ -282,4 +282,12 @@ public class InMemoryQueueManager {
 	}
 	
 	
+	/**
+	 * Shutdown all queues and dynamic settings.
+	 */
+	public void shutdown() {
+		this.queues.values().forEach(InMemoryQueue::shutdown);
+		this.dynamicSettings.values().forEach(DynamicSettings::shutdown);
+	}
+	
 }
