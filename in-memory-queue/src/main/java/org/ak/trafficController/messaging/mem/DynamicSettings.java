@@ -546,4 +546,11 @@ public class DynamicSettings<T> { //We can later think of making it decorator
 		this.cleaners.add(preCleanHandler);
 		return this;
 	}
+	
+	/**
+	 * Shutdown underlying queue.
+	 */
+	public void shutdown() {
+		this.queue.shutdown();
+	}
 }
