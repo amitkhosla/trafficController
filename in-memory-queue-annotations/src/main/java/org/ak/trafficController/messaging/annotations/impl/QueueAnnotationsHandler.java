@@ -198,7 +198,7 @@ public class QueueAnnotationsHandler {
 		} else if(obj == null || (queued.itemInCollection() && ((Collection)obj).isEmpty())) { 
 			Class cls = getTypeForAnnotatedMethodReturnOrFirstParameter(queued.itemInCollection(), RETURN, signature, method);
 			actualMethod = getAppropriateMethod(cls, matchingMethods, directConsumer);
-		}else if (!queued.itemInCollection()) {
+		} else if (!queued.itemInCollection()) {
 			actualMethod = getAppropriateMethod(obj.getClass(), matchingMethods, directConsumer);
 		} else {
 			Collection col = (Collection)obj;
