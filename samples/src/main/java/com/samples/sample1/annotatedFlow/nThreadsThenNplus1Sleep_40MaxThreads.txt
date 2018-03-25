@@ -1,0 +1,85 @@
+starting 20
+Started : 20 Completed: 16 avg time : 11042 Threads:41
+starting 21
+Started : 41 Completed: 36 avg time : 13234 Threads:46
+starting 22
+Started : 63 Completed: 56 avg time : 14485 Threads:48
+starting 23
+Started : 86 Completed: 78 avg time : 15758 Threads:51
+starting 24
+Started : 110 Completed: 98 avg time : 16903 Threads:51
+starting 25
+Started : 135 Completed: 122 avg time : 18298 Threads:56
+starting 26
+Started : 161 Completed: 146 avg time : 19620 Threads:58
+starting 27
+Started : 188 Completed: 172 avg time : 20936 Threads:61
+starting 28
+Started : 216 Completed: 198 avg time : 22205 Threads:63
+starting 29
+Started : 245 Completed: 226 avg time : 23504 Threads:66
+starting 30
+Started : 275 Completed: 254 avg time : 24790 Threads:68
+starting 31
+Started : 306 Completed: 283 avg time : 26093 Threads:71
+starting 32
+Started : 338 Completed: 314 avg time : 27412 Threads:74
+starting 33
+Started : 371 Completed: 344 avg time : 28721 Threads:76
+starting 34
+Started : 405 Completed: 376 avg time : 30078 Threads:80
+starting 35
+Started : 440 Completed: 410 avg time : 31462 Threads:83
+starting 36
+Started : 476 Completed: 444 avg time : 32843 Threads:85
+starting 37
+Started : 513 Completed: 478 avg time : 34229 Threads:88
+starting 38
+Started : 551 Completed: 514 avg time : 35633 Threads:92
+starting 39
+Started : 590 Completed: 552 avg time : 37074 Threads:95
+starting 40
+Started : 630 Completed: 590 avg time : 38526 Threads:97
+starting 1
+Started : 631 Completed: 590 avg time : 38526 Threads:97
+starting 2
+Started : 633 Completed: 592 avg time : 38537 Threads:97
+starting 3
+Started : 636 Completed: 595 avg time : 38566 Threads:97
+starting 4
+Started : 640 Completed: 599 avg time : 38629 Threads:97
+starting 5
+Started : 645 Completed: 604 avg time : 38745 Threads:97
+starting 6
+Started : 651 Completed: 610 avg time : 38939 Threads:97
+starting 7
+Started : 658 Completed: 616 avg time : 39191 Threads:90
+starting 8
+Started : 666 Completed: 624 avg time : 39615 Threads:83
+starting 9
+Started : 675 Completed: 632 avg time : 40007 Threads:73
+starting 10
+Started : 685 Completed: 642 avg time : 40082 Threads:72
+starting 11
+Started : 696 Completed: 652 avg time : 40181 Threads:73
+starting 12
+Started : 708 Completed: 664 avg time : 40317 Threads:75
+starting 13
+Started : 721 Completed: 676 avg time : 40482 Threads:76
+starting 14
+Started : 735 Completed: 688 avg time : 40655 Threads:78
+starting 15
+Started : 750 Completed: 702 avg time : 40899 Threads:81
+starting 16
+Started : 766 Completed: 716 avg time : 41175 Threads:83
+starting 17
+Started : 783 Completed: 732 avg time : 41527 Threads:86
+starting 18
+Started : 801 Completed: 749 avg time : 41932 Threads:88
+starting 19
+Started : 820 Completed: 767 avg time : 42365 Threads:90
+starting 20
+Started : 840 Completed: 786 avg time : 42824 Threads:92
+starting 21
+Started : 861 Completed: 806 avg time : 43336 Threads:94
+starting 22

@@ -1,0 +1,689 @@
+starting 19
+Sleeping for 2933
+starting 1
+Sleeping for 8480
+Started : 20 Completed: 8 avg time : 10033 Threads:33
+starting 3
+Sleeping for 8563
+Started : 23 Completed: 23 avg time : 10645 Threads:33
+starting 15
+Sleeping for 11259
+Started : 38 Completed: 38 avg time : 9829 Threads:33
+starting 6
+Sleeping for 4259
+Started : 44 Completed: 44 avg time : 8867 Threads:33
+starting 10
+Sleeping for 2808
+Started : 54 Completed: 44 avg time : 8867 Threads:33
+starting 15
+Sleeping for 11720
+Started : 69 Completed: 69 avg time : 8977 Threads:38
+starting 13
+Sleeping for 2600
+Started : 82 Completed: 69 avg time : 8977 Threads:38
+starting 14
+Sleeping for 8387
+Started : 96 Completed: 76 avg time : 8979 Threads:40
+starting 11
+Sleeping for 169
+Started : 107 Completed: 77 avg time : 9012 Threads:44
+starting 6
+Sleeping for 4586
+Started : 113 Completed: 83 avg time : 9349 Threads:49
+starting 4
+Sleeping for 9484
+Started : 117 Completed: 98 avg time : 10522 Threads:49
+starting 5
+Sleeping for 11335
+Started : 122 Completed: 122 avg time : 11188 Threads:48
+starting 18
+Sleeping for 3083
+Started : 140 Completed: 122 avg time : 11188 Threads:48
+starting 17
+Sleeping for 6901
+Started : 157 Completed: 123 avg time : 11178 Threads:48
+starting 13
+Sleeping for 6464
+Started : 170 Completed: 135 avg time : 11457 Threads:59
+starting 15
+Sleeping for 2571
+Started : 185 Completed: 140 avg time : 11678 Threads:62
+starting 3
+Sleeping for 2304
+Started : 188 Completed: 144 avg time : 11907 Threads:62
+starting 4
+Sleeping for 2161
+Started : 192 Completed: 147 avg time : 12081 Threads:62
+starting 8
+Sleeping for 11760
+Started : 200 Completed: 160 avg time : 13322 Threads:65
+starting 17
+Sleeping for 13970
+Started : 217 Completed: 186 avg time : 15880 Threads:69
+starting 4
+Sleeping for 2013
+Started : 221 Completed: 187 avg time : 15990 Threads:69
+starting 0
+Sleeping for 10458
+Started : 221 Completed: 215 avg time : 17594 Threads:68
+starting 5
+Sleeping for 10140
+Started : 226 Completed: 226 avg time : 17280 Threads:68
+starting 6
+Sleeping for 11943
+Started : 232 Completed: 232 avg time : 16900 Threads:68
+starting 7
+Sleeping for 11234
+Started : 239 Completed: 239 avg time : 16496 Threads:68
+starting 16
+Sleeping for 13581
+Started : 255 Completed: 255 avg time : 15912 Threads:46
+starting 18
+Sleeping for 6414
+Started : 273 Completed: 255 avg time : 15912 Threads:34
+starting 11
+Sleeping for 11565
+Started : 284 Completed: 284 avg time : 15200 Threads:40
+starting 5
+Sleeping for 3599
+Started : 289 Completed: 289 avg time : 14974 Threads:40
+starting 14
+Sleeping for 7665
+Started : 303 Completed: 303 avg time : 14560 Threads:40
+starting 19
+Sleeping for 13567
+Started : 322 Completed: 322 avg time : 14188 Threads:40
+starting 8
+Sleeping for 6487
+Started : 330 Completed: 330 avg time : 13924 Threads:40
+starting 10
+Sleeping for 7704
+Started : 340 Completed: 340 avg time : 13636 Threads:40
+starting 5
+Sleeping for 1685
+Started : 345 Completed: 340 avg time : 13636 Threads:40
+starting 15
+Sleeping for 13389
+Started : 360 Completed: 360 avg time : 13229 Threads:31
+starting 2
+Sleeping for 14029
+Started : 362 Completed: 362 avg time : 13164 Threads:31
+starting 15
+Sleeping for 6677
+Started : 377 Completed: 374 avg time : 12929 Threads:31
+starting 11
+Sleeping for 11666
+Started : 388 Completed: 388 avg time : 12657 Threads:31
+starting 10
+Sleeping for 13069
+Started : 398 Completed: 398 avg time : 12450 Threads:31
+starting 2
+Sleeping for 342
+Started : 400 Completed: 398 avg time : 12450 Threads:31
+starting 19
+Sleeping for 10017
+Started : 419 Completed: 415 avg time : 12296 Threads:32
+starting 15
+Sleeping for 13090
+Started : 434 Completed: 434 avg time : 12086 Threads:32
+starting 3
+Sleeping for 7529
+Started : 437 Completed: 437 avg time : 12014 Threads:32
+starting 12
+Sleeping for 6326
+Started : 449 Completed: 449 avg time : 11845 Threads:32
+starting 6
+Sleeping for 2813
+Started : 455 Completed: 455 avg time : 11720 Threads:32
+starting 10
+Sleeping for 4949
+Started : 465 Completed: 465 avg time : 11559 Threads:32
+starting 14
+Sleeping for 4270
+Started : 479 Completed: 466 avg time : 11543 Threads:32
+starting 2
+Sleeping for 2323
+Started : 481 Completed: 475 avg time : 11438 Threads:32
+starting 15
+Sleeping for 13110
+Started : 496 Completed: 496 avg time : 11314 Threads:31
+starting 16
+Sleeping for 14533
+Started : 512 Completed: 512 avg time : 11195 Threads:31
+starting 2
+Sleeping for 347
+Started : 514 Completed: 512 avg time : 11195 Threads:31
+starting 12
+Sleeping for 10469
+Started : 526 Completed: 526 avg time : 11055 Threads:31
+starting 9
+Sleeping for 880
+Started : 535 Completed: 526 avg time : 11055 Threads:31
+starting 2
+Sleeping for 10364
+Started : 537 Completed: 537 avg time : 10922 Threads:31
+starting 19
+Sleeping for 3155
+Started : 556 Completed: 537 avg time : 10922 Threads:31
+starting 8
+Sleeping for 13370
+Started : 564 Completed: 564 avg time : 10917 Threads:38
+starting 1
+Sleeping for 8516
+Started : 565 Completed: 565 avg time : 10900 Threads:38
+starting 17
+Sleeping for 3762
+Started : 582 Completed: 565 avg time : 10900 Threads:38
+starting 19
+Sleeping for 2936
+Started : 601 Completed: 565 avg time : 10900 Threads:47
+starting 16
+Sleeping for 5162
+Started : 617 Completed: 568 avg time : 10904 Threads:63
+starting 17
+Sleeping for 10423
+Started : 634 Completed: 582 avg time : 11059 Threads:77
+starting 6
+Sleeping for 9001
+Started : 640 Completed: 593 avg time : 11334 Threads:77
+starting 4
+Sleeping for 12749
+Started : 644 Completed: 619 avg time : 12332 Threads:77
+starting 14
+Sleeping for 7832
+Started : 658 Completed: 637 avg time : 13013 Threads:77
+starting 13
+Sleeping for 11532
+Started : 671 Completed: 657 avg time : 13280 Threads:77
+starting 14
+Sleeping for 5220
+Started : 685 Completed: 664 avg time : 13307 Threads:76
+starting 6
+Sleeping for 4221
+Started : 691 Completed: 671 avg time : 13352 Threads:70
+starting 5
+Sleeping for 1553
+Started : 696 Completed: 672 avg time : 13349 Threads:69
+starting 14
+Sleeping for 2600
+Started : 710 Completed: 675 avg time : 13349 Threads:69
+starting 8
+Sleeping for 4056
+Started : 718 Completed: 683 avg time : 13365 Threads:69
+starting 11
+Sleeping for 13478
+Started : 729 Completed: 696 avg time : 13459 Threads:57
+starting 11
+Sleeping for 11602
+Started : 740 Completed: 728 avg time : 13962 Threads:57
+starting 12
+Sleeping for 2034
+Started : 752 Completed: 729 avg time : 13980 Threads:57
+starting 9
+Sleeping for 2371
+Started : 761 Completed: 732 avg time : 13986 Threads:57
+starting 18
+Sleeping for 9182
+Started : 779 Completed: 740 avg time : 14039 Threads:58
+starting 10
+Sleeping for 5176
+Started : 789 Completed: 743 avg time : 14055 Threads:60
+starting 3
+Sleeping for 6880
+Started : 792 Completed: 757 avg time : 14201 Threads:60
+starting 16
+Sleeping for 1817
+Started : 808 Completed: 761 avg time : 14264 Threads:62
+starting 14
+Sleeping for 13903
+Started : 822 Completed: 781 avg time : 14685 Threads:72
+starting 12
+Sleeping for 14718
+Started : 834 Completed: 799 avg time : 15045 Threads:72
+starting 0
+Sleeping for 9279
+Started : 834 Completed: 827 avg time : 15650 Threads:72
+starting 5
+Sleeping for 14316
+Started : 839 Completed: 839 avg time : 15651 Threads:72
+starting 13
+Sleeping for 6553
+Started : 852 Completed: 848 avg time : 15548 Threads:72
+starting 14
+Sleeping for 5033
+Started : 866 Completed: 852 avg time : 15508 Threads:66
+starting 4
+Sleeping for 10015
+Started : 870 Completed: 870 avg time : 15320 Threads:64
+starting 5
+Sleeping for 14106
+Started : 875 Completed: 875 avg time : 15245 Threads:48
+starting 13
+Sleeping for 12745
+Started : 888 Completed: 888 avg time : 15109 Threads:29
+starting 0
+Sleeping for 11581
+Started : 888 Completed: 888 avg time : 15109 Threads:29
+starting 2
+Sleeping for 5389
+Started : 890 Completed: 890 avg time : 15079 Threads:29
+starting 12
+Sleeping for 9134
+Started : 902 Completed: 902 avg time : 14952 Threads:24
+starting 7
+Sleeping for 1263
+Started : 909 Completed: 902 avg time : 14952 Threads:24
+starting 16
+Sleeping for 3556
+Started : 925 Completed: 903 avg time : 14941 Threads:34
+starting 16
+Sleeping for 3383
+Started : 941 Completed: 909 avg time : 14883 Threads:49
+starting 11
+Sleeping for 8757
+Started : 952 Completed: 922 avg time : 14868 Threads:54
+starting 11
+Sleeping for 3630
+Started : 963 Completed: 925 avg time : 14877 Threads:54
+starting 5
+Sleeping for 5860
+Started : 968 Completed: 931 avg time : 14902 Threads:54
+starting 17
+Sleeping for 595
+Started : 985 Completed: 933 avg time : 14918 Threads:65
+starting 4
+Sleeping for 9251
+Started : 989 Completed: 952 avg time : 15106 Threads:67
+starting 11
+Sleeping for 12396
+Started : 1000 Completed: 965 avg time : 15244 Threads:67
+starting 16
+Sleeping for 10992
+Started : 1016 Completed: 984 avg time : 15512 Threads:67
+starting 4
+Sleeping for 459
+Started : 1020 Completed: 985 avg time : 15530 Threads:67
+starting 8
+Sleeping for 1949
+Started : 1028 Completed: 989 avg time : 15596 Threads:67
+starting 11
+Sleeping for 2633
+Started : 1039 Completed: 992 avg time : 15641 Threads:67
+starting 6
+Sleeping for 6900
+Started : 1045 Completed: 1000 avg time : 15778 Threads:67
+starting 6
+Sleeping for 9986
+Started : 1051 Completed: 1011 avg time : 15922 Threads:67
+starting 1
+Sleeping for 10416
+Started : 1052 Completed: 1030 avg time : 16196 Threads:64
+starting 0
+Sleeping for 2477
+Started : 1052 Completed: 1044 avg time : 16401 Threads:64
+starting 8
+Sleeping for 13317
+Started : 1060 Completed: 1060 avg time : 16381 Threads:64
+starting 19
+Sleeping for 10418
+Started : 1079 Completed: 1079 avg time : 16249 Threads:64
+starting 17
+Sleeping for 7758
+Started : 1096 Completed: 1089 avg time : 16163 Threads:62
+starting 11
+Sleeping for 592
+Started : 1107 Completed: 1093 avg time : 16134 Threads:62
+starting 13
+Sleeping for 14765
+Started : 1120 Completed: 1120 avg time : 16013 Threads:51
+starting 10
+Sleeping for 10008
+Started : 1130 Completed: 1130 avg time : 15912 Threads:38
+starting 7
+Sleeping for 6646
+Started : 1137 Completed: 1137 avg time : 15833 Threads:38
+starting 6
+Sleeping for 14765
+Started : 1143 Completed: 1143 avg time : 15763 Threads:38
+starting 0
+Sleeping for 13725
+Started : 1143 Completed: 1143 avg time : 15763 Threads:38
+starting 14
+Sleeping for 3518
+Started : 1157 Completed: 1143 avg time : 15763 Threads:35
+starting 12
+Sleeping for 3188
+Started : 1169 Completed: 1145 avg time : 15746 Threads:37
+starting 2
+Sleeping for 11887
+Started : 1171 Completed: 1171 avg time : 15594 Threads:37
+starting 15
+Sleeping for 14999
+Started : 1186 Completed: 1186 avg time : 15481 Threads:37
+starting 12
+Sleeping for 895
+Started : 1198 Completed: 1186 avg time : 15481 Threads:37
+starting 9
+Sleeping for 14632
+Started : 1207 Completed: 1207 avg time : 15355 Threads:37
+starting 7
+Sleeping for 13338
+Started : 1214 Completed: 1214 avg time : 15283 Threads:37
+starting 8
+Sleeping for 13914
+Started : 1222 Completed: 1222 avg time : 15207 Threads:32
+starting 13
+Sleeping for 4013
+Started : 1235 Completed: 1222 avg time : 15207 Threads:32
+starting 17
+Sleeping for 8904
+Started : 1252 Completed: 1235 avg time : 15129 Threads:41
+starting 10
+Sleeping for 4358
+Started : 1262 Completed: 1243 avg time : 15110 Threads:41
+starting 13
+Sleeping for 1304
+Started : 1275 Completed: 1248 avg time : 15110 Threads:43
+starting 18
+Sleeping for 8704
+Started : 1293 Completed: 1252 avg time : 15117 Threads:56
+starting 15
+Sleeping for 5298
+Started : 1308 Completed: 1254 avg time : 15125 Threads:67
+starting 8
+Sleeping for 4781
+Started : 1316 Completed: 1258 avg time : 15151 Threads:73
+starting 4
+Sleeping for 9645
+Started : 1320 Completed: 1267 avg time : 15241 Threads:73
+starting 7
+Sleeping for 4579
+Started : 1327 Completed: 1275 avg time : 15356 Threads:73
+starting 17
+Sleeping for 6229
+Started : 1344 Completed: 1286 avg time : 15565 Threads:80
+starting 0
+Sleeping for 14456
+Started : 1344 Completed: 1306 avg time : 16019 Threads:80
+starting 6
+Sleeping for 6786
+Started : 1350 Completed: 1317 avg time : 16288 Threads:80
+starting 0
+Sleeping for 778
+Started : 1350 Completed: 1318 avg time : 16315 Threads:80
+starting 2
+Sleeping for 14340
+Started : 1352 Completed: 1352 avg time : 16740 Threads:80
+starting 8
+Sleeping for 11080
+Started : 1360 Completed: 1360 avg time : 16667 Threads:80
+starting 2
+Sleeping for 7217
+Started : 1362 Completed: 1362 avg time : 16645 Threads:77
+starting 1
+Sleeping for 3082
+Started : 1363 Completed: 1363 avg time : 16634 Threads:69
+starting 11
+Sleeping for 5059
+Started : 1374 Completed: 1365 avg time : 16617 Threads:65
+starting 7
+Sleeping for 3458
+Started : 1381 Completed: 1374 avg time : 16546 Threads:59
+starting 0
+Sleeping for 12704
+Started : 1381 Completed: 1381 avg time : 16482 Threads:49
+starting 19
+Sleeping for 12332
+Started : 1400 Completed: 1400 avg time : 16375 Threads:30
+starting 19
+Sleeping for 9002
+Started : 1419 Completed: 1409 avg time : 16318 Threads:30
+starting 16
+Sleeping for 1132
+Started : 1435 Completed: 1417 avg time : 16280 Threads:37
+starting 0
+Sleeping for 7564
+Started : 1435 Completed: 1431 avg time : 16201 Threads:37
+starting 11
+Sleeping for 852
+Started : 1446 Completed: 1434 avg time : 16186 Threads:37
+starting 16
+Sleeping for 14344
+Started : 1462 Completed: 1453 avg time : 16136 Threads:39
+starting 4
+Sleeping for 9138
+Started : 1466 Completed: 1466 avg time : 16094 Threads:39
+starting 17
+Sleeping for 2945
+Started : 1483 Completed: 1466 avg time : 16094 Threads:39
+starting 2
+Sleeping for 14610
+Started : 1485 Completed: 1485 avg time : 16001 Threads:39
+starting 2
+Sleeping for 3745
+Started : 1487 Completed: 1487 avg time : 15981 Threads:39
+starting 11
+Sleeping for 10094
+Started : 1498 Completed: 1498 avg time : 15901 Threads:39
+starting 1
+Sleeping for 7537
+Started : 1499 Completed: 1499 avg time : 15892 Threads:38
+starting 7
+Sleeping for 3073
+Started : 1506 Completed: 1506 avg time : 15831 Threads:38
+starting 15
+Sleeping for 6296
+Started : 1521 Completed: 1506 avg time : 15831 Threads:30
+starting 17
+Sleeping for 13021
+Started : 1538 Completed: 1538 avg time : 15700 Threads:43
+starting 8
+Sleeping for 1982
+Started : 1546 Completed: 1538 avg time : 15700 Threads:43
+starting 13
+Sleeping for 12923
+Started : 1559 Completed: 1559 avg time : 15598 Threads:43
+starting 13
+Sleeping for 3223
+Started : 1572 Completed: 1559 avg time : 15598 Threads:43
+starting 17
+Sleeping for 3866
+Started : 1589 Completed: 1561 avg time : 15586 Threads:43
+starting 13
+Sleeping for 828
+Started : 1602 Completed: 1563 avg time : 15576 Threads:51
+starting 5
+Sleeping for 9538
+Started : 1607 Completed: 1573 avg time : 15547 Threads:55
+starting 19
+Sleeping for 2891
+Started : 1626 Completed: 1577 avg time : 15550 Threads:64
+starting 3
+Sleeping for 7316
+Started : 1629 Completed: 1592 avg time : 15608 Threads:64
+starting 3
+Sleeping for 3661
+Started : 1632 Completed: 1599 avg time : 15653 Threads:64
+starting 2
+Sleeping for 13559
+Started : 1634 Completed: 1624 avg time : 15828 Threads:64
+starting 10
+Sleeping for 1506
+Started : 1644 Completed: 1631 avg time : 15874 Threads:64
+starting 19
+Sleeping for 808
+Started : 1663 Completed: 1633 avg time : 15880 Threads:64
+starting 17
+Sleeping for 10185
+Started : 1680 Completed: 1634 avg time : 15884 Threads:64
+starting 16
+Sleeping for 6646
+Started : 1696 Completed: 1634 avg time : 15884 Threads:73
+starting 8
+Sleeping for 8698
+Started : 1704 Completed: 1638 avg time : 15901 Threads:81
+starting 3
+Sleeping for 2390
+Started : 1707 Completed: 1642 avg time : 15932 Threads:81
+starting 4
+Sleeping for 11253
+Started : 1711 Completed: 1655 avg time : 16074 Threads:81
+starting 16
+Sleeping for 6951
+Started : 1727 Completed: 1665 avg time : 16235 Threads:83
+starting 6
+Sleeping for 9742
+Started : 1733 Completed: 1681 avg time : 16563 Threads:83
+starting 16
+Sleeping for 246
+Started : 1749 Completed: 1681 avg time : 16563 Threads:83
+starting 1
+Sleeping for 10392
+Started : 1750 Completed: 1694 avg time : 16852 Threads:83
+starting 19
+Sleeping for 10786
+Started : 1769 Completed: 1703 avg time : 17074 Threads:87
+starting 8
+Sleeping for 219
+Started : 1777 Completed: 1704 avg time : 17095 Threads:87
+starting 12
+Sleeping for 7316
+Started : 1789 Completed: 1707 avg time : 17158 Threads:97
+starting 19
+Sleeping for 11918
+Started : 1808 Completed: 1715 avg time : 17357 Threads:113
+starting 11
+Sleeping for 14875
+Started : 1819 Completed: 1728 avg time : 17692 Threads:116
+starting 1
+Sleeping for 14517
+Started : 1820 Completed: 1739 avg time : 18019 Threads:116
+starting 1
+Sleeping for 14925
+Started : 1821 Completed: 1755 avg time : 18528 Threads:116
+starting 14
+Sleeping for 4770
+Started : 1835 Completed: 1760 avg time : 18688 Threads:116
+starting 15
+Sleeping for 1354
+Started : 1850 Completed: 1762 avg time : 18753 Threads:116
+starting 11
+Sleeping for 2747
+Started : 1861 Completed: 1767 avg time : 18938 Threads:116
+starting 5
+Sleeping for 8911
+Started : 1866 Completed: 1776 avg time : 19297 Threads:111
+starting 7
+Sleeping for 8206
+Started : 1873 Completed: 1785 avg time : 19668 Threads:111
+starting 17
+Sleeping for 4120
+Started : 1890 Completed: 1787 avg time : 19748 Threads:117
+starting 17
+Sleeping for 966
+Started : 1907 Completed: 1791 avg time : 19919 Threads:132
+starting 10
+Sleeping for 9041
+Started : 1917 Completed: 1799 avg time : 20300 Threads:138
+starting 10
+Sleeping for 2520
+Started : 1927 Completed: 1801 avg time : 20398 Threads:140
+starting 1
+Sleeping for 8010
+Started : 1928 Completed: 1808 avg time : 20751 Threads:140
+starting 4
+Sleeping for 8508
+Started : 1932 Completed: 1813 avg time : 21016 Threads:140
+starting 4
+Sleeping for 4633
+Started : 1936 Completed: 1817 avg time : 21232 Threads:140
+starting 11
+Sleeping for 13819
+Started : 1947 Completed: 1821 avg time : 21435 Threads:141
+starting 11
+Sleeping for 343
+Started : 1958 Completed: 1822 avg time : 21480 Threads:148
+starting 14
+Sleeping for 12491
+Started : 1972 Completed: 1823 avg time : 21524 Threads:161
+starting 5
+Sleeping for 4731
+Started : 1977 Completed: 1823 avg time : 21524 Threads:165
+starting 5
+Sleeping for 8213
+Started : 1982 Completed: 1824 avg time : 21577 Threads:171
+starting 11
+Sleeping for 6455
+Started : 1993 Completed: 1824 avg time : 21577 Threads:181
+starting 13
+Sleeping for 11023
+Started : 2006 Completed: 1825 avg time : 21640 Threads:194
+starting 18
+Sleeping for 14350
+Started : 2024 Completed: 1825 avg time : 21640 Threads:211
+starting 19
+Sleeping for 4653
+Started : 2043 Completed: 1825 avg time : 21640 Threads:230
+starting 4
+Sleeping for 3148
+Started : 2047 Completed: 1825 avg time : 21640 Threads:234
+starting 3
+Sleeping for 1031
+Started : 2050 Completed: 1825 avg time : 21640 Threads:237
+starting 14
+Sleeping for 9240
+Started : 2064 Completed: 1826 avg time : 21720 Threads:251
+starting 18
+Sleeping for 11869
+Started : 2082 Completed: 1826 avg time : 21720 Threads:268
+starting 10
+Sleeping for 9638
+Started : 2092 Completed: 1826 avg time : 21720 Threads:278
+starting 16
+Sleeping for 13790
+Started : 2108 Completed: 1826 avg time : 21720 Threads:294
+starting 11
+Sleeping for 9077
+Started : 2119 Completed: 1826 avg time : 21720 Threads:305
+starting 17
+Sleeping for 9907
+Started : 2136 Completed: 1826 avg time : 21720 Threads:322
+starting 6
+Sleeping for 14952
+Started : 2142 Completed: 1827 avg time : 21842 Threads:328
+starting 1
+Sleeping for 3871
+Started : 2143 Completed: 1827 avg time : 21842 Threads:327
+starting 12
+Sleeping for 2525
+Started : 2155 Completed: 1828 avg time : 21972 Threads:339
+starting 11
+Sleeping for 6923
+Started : 2166 Completed: 1828 avg time : 21972 Threads:349
+starting 8
+Sleeping for 6897
+Started : 2174 Completed: 1828 avg time : 21972 Threads:357
+starting 11
+Sleeping for 9646
+Started : 2185 Completed: 1828 avg time : 21972 Threads:368
+starting 1
+Sleeping for 3724
+Started : 2186 Completed: 1828 avg time : 21972 Threads:369
+starting 11
+Sleeping for 10170
+Started : 2197 Completed: 1828 avg time : 21972 Threads:381
+starting 15
+Sleeping for 4642
+Started : 2212 Completed: 1828 avg time : 21972 Threads:396
+starting 10
+Sleeping for 11775
+Started : 2222 Completed: 1828 avg time : 21972 Threads:406
+starting 11
+Sleeping for 6971
+Started : 2233 Completed: 1828 avg time : 21972 Threads:417
+starting 12
+Sleeping for 410
+Started : 2245 Completed: 1828 avg time : 21972 Threads:429
+starting 5
+Sleeping for 11641
+About to crash as completion rate declined.

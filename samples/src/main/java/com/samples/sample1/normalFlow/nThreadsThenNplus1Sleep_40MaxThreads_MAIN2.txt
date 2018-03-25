@@ -1,0 +1,38 @@
+starting 20
+Started : 20 Completed: 6 avg time : 18318 Threads:32
+starting 21
+Started : 41 Completed: 25 avg time : 21252 Threads:47
+starting 22
+Started : 63 Completed: 44 avg time : 22894 Threads:50
+starting 23
+Started : 86 Completed: 65 avg time : 24401 Threads:54
+starting 24
+Started : 110 Completed: 86 avg time : 26059 Threads:56
+starting 25
+Started : 135 Completed: 110 avg time : 27705 Threads:61
+starting 26
+Started : 161 Completed: 130 avg time : 30076 Threads:63
+starting 27
+Started : 188 Completed: 137 avg time : 31274 Threads:70
+starting 28
+Started : 216 Completed: 149 avg time : 34304 Threads:90
+starting 29
+Started : 245 Completed: 158 avg time : 37653 Threads:107
+starting 30
+Started : 275 Completed: 168 avg time : 41981 Threads:128
+starting 31
+Started : 306 Completed: 172 avg time : 44274 Threads:150
+starting 32
+Started : 338 Completed: 177 avg time : 47541 Threads:178
+starting 33
+Started : 371 Completed: 177 avg time : 47541 Threads:206
+starting 34
+Started : 405 Completed: 180 avg time : 50515 Threads:240
+starting 35
+Started : 440 Completed: 180 avg time : 50515 Threads:272
+starting 36
+Started : 476 Completed: 180 avg time : 50515 Threads:308
+starting 37
+Started : 513 Completed: 180 avg time : 50515 Threads:345
+starting 38
+AND HANGED JCONSOLE LOST CONNECTION
