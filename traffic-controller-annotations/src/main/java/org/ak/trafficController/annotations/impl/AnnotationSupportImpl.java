@@ -296,14 +296,14 @@ public class AnnotationSupportImpl {
 	 public Object runControlled(ProceedingJoinPoint joinPoint, Controlled controlled) throws Throwable {
 		TaskExecutorDetails taskExecutorDetail = taskHelper.getTaskExecutor(controlled, joinPoint);
 		Task task = ParallelJoinHelper.getTask();
-		boolean taskExecutorPresent = TaskExecutorsInUseThreadLocal.isTaskExecutorPresent(taskExecutorDetail.getName());
+		String nameForTheTaskExecutor = getNameForTaskExecutor(controlled, taskExecutorDetail);
+		boolean taskExecutorPresent = TaskExecutorsInUseThreadLocal.isTaskExecutorPresent(nameForTheTaskExecutor);
 		if (taskExecutorPresent) {
 			if (task == null) {
 				logger.fine("already from same executor..so processing directly.");
 				return joinPoint.proceed();
 			}
 		}
-		String nameForTheTaskExecutor = getNameForTaskExecutor(controlled, taskExecutorDetail);
 		TaskExecutor taskExecutor = taskExecutorDetail.getTaskExecutor();
 		if (task !=null) {
 			taskExecutor = addToTaskChainAsCalledFromParallel(joinPoint, controlled, task, taskExecutorPresent,
