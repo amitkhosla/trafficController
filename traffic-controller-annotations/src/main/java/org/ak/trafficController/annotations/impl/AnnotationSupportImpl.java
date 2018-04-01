@@ -1,5 +1,6 @@
 package org.ak.trafficController.annotations.impl;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -7,6 +8,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -19,6 +21,7 @@ import org.ak.trafficController.ParallelTask;
 import org.ak.trafficController.RunnableToBeExecuted;
 import org.ak.trafficController.Task;
 import org.ak.trafficController.TaskExecutor;
+import org.ak.trafficController.ThreadingDetails;
 import org.ak.trafficController.UnlinkedTask;
 import org.ak.trafficController.annotations.api.Controlled;
 import org.ak.trafficController.annotations.api.Join;
@@ -29,6 +32,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.util.StringUtils;
 
 
 /**
@@ -43,6 +47,9 @@ import org.aspectj.lang.reflect.MethodSignature;
 public class AnnotationSupportImpl {
 
 	Logger logger = Logger.getLogger(AnnotationSupportImpl.class.getName());
+	
+	@Inject
+	MethodInvoker methodInvoker;
 	
 	/**
 	 * Parallel id
@@ -83,6 +90,10 @@ public class AnnotationSupportImpl {
 		ParallelJoinHelper.setParallelTaskId(currentParallelId);	
 		//if (!isSubParallelTask) {
 		ExecutableTask thisParallelTask = TaskExecutor.getInstance().of(()->{});
+		setThreadingDetailsIfAny(thisParallelTask,
+				parallel.threadDetailsDataExtractClass(), parallel.threadDetailsDataExtractMethodName(),
+				parallel.threadDetailsProcessorClass(), parallel.threadDetailsProcessorMethodName(),
+				parallel.threadDetailsCleanerClass(), parallel.threadDetailsCleanerMethodName());
 		thisParallelTask.setName("ParallelTask" + currentParallelId);
 		ParallelExecutingTask<Object> thenParallel = thisParallelTask.thenParallel(()->{});
 		thenParallel.setName("ParallelTaskName:" + currentParallelId);
@@ -99,6 +110,83 @@ public class AnnotationSupportImpl {
 			return null;
 		}
 	}
+
+	/**
+	 * Set threading details to the given task.
+	 * @param task Task to which need to set thread details
+	 * @param threadDetailsDataExtractClass Data extractor class
+	 * @param threadDetailsDataExtractMethodName Data extractor method
+	 * @param threadDetailsProcessorClass Processor class
+	 * @param threadDetailsProcessorMethodName Processor method
+	 * @param threadDetailsCleanerClass Cleaner class
+	 * @param threadDetailsCleanerMethodName Cleaner method
+	 */
+	protected void setThreadingDetailsIfAny(Task task, 
+			Class threadDetailsDataExtractClass, String threadDetailsDataExtractMethodName, 
+			Class threadDetailsProcessorClass, String threadDetailsProcessorMethodName,
+			Class threadDetailsCleanerClass, String threadDetailsCleanerMethodName) {
+		if (
+				StringUtils.isEmpty(threadDetailsDataExtractMethodName) 
+				&& StringUtils.isEmpty(threadDetailsProcessorMethodName)
+				&& StringUtils.isEmpty(threadDetailsCleanerMethodName)
+		) {
+			return;
+		}
+		Consumer processingConsumer = getConsumer(threadDetailsProcessorClass, threadDetailsProcessorMethodName);
+		if (task.containsProcessingConsumer(processingConsumer)) {
+			return;
+		}
+		ThreadingDetails details = new ThreadingDetails<>().setObjectFromMainFlow(
+				findMethodAndExecute(threadDetailsDataExtractClass, threadDetailsDataExtractMethodName)
+		).setProcessingForEachThread(processingConsumer)
+		.setCleaner(getConsumer(threadDetailsCleanerClass, threadDetailsCleanerMethodName));
+		task.addThreadRelatedDetails(details);
+	}
+
+	Map<String, Consumer> threadDetailsConsumerMap = new ConcurrentHashMap<>();
+	
+	/**
+	 * Get consumer for the class and method.
+	 * @param cls Class having the method
+	 * @param method Method to be run by consumer
+	 * @return Consumer which will run for each task
+	 */
+	protected Consumer getConsumer(Class cls, String method) {
+		String key = cls.getName() + "." + method;
+		Consumer consumer = threadDetailsConsumerMap.get(key);
+		if (consumer != null) {
+			return consumer;
+		}
+		consumer = o->{
+			try {
+				methodInvoker.executeMethod(cls, method, o);
+			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+					| InvocationTargetException e) {
+				logger.log(Level.WARNING, "Exception occured while processing thread local logic.", e);
+			}
+		};
+		threadDetailsConsumerMap.put(key, consumer);
+		return consumer;
+	}
+
+	/**
+	 * Find Method and execute to find the thread local details.
+	 * @param classContainingMethod Class containing method which needs to be run
+	 * @param method Method which needs to be executed
+	 * @return Thread data to be consumed by each task 
+	 */
+	protected Object findMethodAndExecute(Class classContainingMethod,
+			String method) {
+		try {
+			return methodInvoker.extractData(classContainingMethod, method);
+		} catch (InstantiationException | IllegalAccessException | NoSuchMethodException | SecurityException
+				| IllegalArgumentException | InvocationTargetException e) {
+			logger.log(Level.WARNING, "Exception occured while setting thread local. Null will be set.", e);
+		}
+		return null;
+	}
+
+	
 
 	/**
 	 * Sub process handling. This method will be called while handling Parallel in case where parallel is being called inside another parallel flow.
@@ -187,6 +275,10 @@ public class AnnotationSupportImpl {
 		case SLOW :
 			task = taskExecutor.slowOf(taskToWorkOn);
 		}
+		setThreadingDetailsIfAny(task,
+				async.threadDetailsDataExtractClass(), async.threadDetailsDataExtractMethodName(),
+				async.threadDetailsProcessorClass(), async.threadDetailsProcessorMethodName(),
+				async.threadDetailsCleanerClass(), async.threadDetailsCleanerMethodName());
 		Task taskInThread = ParallelJoinHelper.getTask();
 		if (taskInThread == null) {
 			task.submit();
@@ -234,6 +326,10 @@ public class AnnotationSupportImpl {
 		});
 		joinerTask.setName("joiner ParallelId:" + parallelTaskId + " taskId : " + taskId + getTaskNameFromJoinPoint(joinPoint));
 		parallelJoinHelper.setTask(joinerTask);
+		setThreadingDetailsIfAny(joinerTask,
+				join.threadDetailsDataExtractClass(), join.threadDetailsDataExtractMethodName(),
+				join.threadDetailsProcessorClass(), join.threadDetailsProcessorMethodName(),
+				join.threadDetailsCleanerClass(), join.threadDetailsCleanerMethodName());
 		return null;
 	}
 	
@@ -351,7 +447,17 @@ public class AnnotationSupportImpl {
 		}
 		String name = "ParallelId:" + parallelTaskId + " taskId:" +taskId + " " + getTaskNameFromJoinPoint(joinPoint);
 		org.ak.trafficController.Task.TaskType taskType = convertAnnotationTaskTypeToFrameworkTaskType(controlled.taskType());
-		((ParallelTask) task).addRunnables(taskType, taskExecutor,name, runnableToBeExecuted);
+		Task thisTask;
+		if (taskType == org.ak.trafficController.Task.TaskType.NORMAL) {
+			thisTask = taskExecutor.of(runnableToBeExecuted);
+		} else {
+			thisTask = taskExecutor.slowOf(runnableToBeExecuted);
+		}
+		((ParallelTask) task).addTask(thisTask);
+		setThreadingDetailsIfAny(thisTask,
+				controlled.threadDetailsDataExtractClass(), controlled.threadDetailsDataExtractMethodName(),
+				controlled.threadDetailsProcessorClass(), controlled.threadDetailsProcessorMethodName(),
+				controlled.threadDetailsCleanerClass(), controlled.threadDetailsCleanerMethodName());
 		return taskExecutor;
 	}
 
