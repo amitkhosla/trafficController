@@ -2,6 +2,7 @@ package org.ak.trafficController;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -31,6 +32,7 @@ public class ReturningTaskTest {
 	@Test
 	public void testThenConsume() {
 		ExecutableTask mock = Mockito.mock(ExecutableTask.class);
+		Mockito.when(mock.getThreadingDetails()).thenReturn(new ArrayList<>());
 		StringBuilder sb = new StringBuilder();
 		ReturningTask<Integer> rt = new ReturningTask<Integer>(1234, ()->2, TaskType.NORMAL) {
 			@Override
@@ -74,6 +76,7 @@ public class ReturningTaskTest {
 	
 	@Test
 	public void testThenCore() {
+		TaskExecutor originalInstance = TaskExecutor.instance;
 		TaskExecutor.instance = new TaskExecutor() {
 			@Override
 			public void enque(Task nextTask) {
@@ -93,6 +96,7 @@ public class ReturningTaskTest {
 			e.printStackTrace();
 		}
 		assertEquals(10, ai.get());
+		TaskExecutor.instance = originalInstance;
 	}
 	
 }

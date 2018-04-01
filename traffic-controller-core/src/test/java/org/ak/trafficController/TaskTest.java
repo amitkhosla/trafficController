@@ -265,18 +265,28 @@ public class TaskTest {
 		AtomicReference<String> arCleaner = new AtomicReference<String>();
 		String threadLocalValue = "my thread local value";
 		setString(threadLocalValue);
+		System.out.println(getThreadLocal());
 		TaskExecutor.getInstance().of(()->{
-			ar.set(getThreadLocal());
+			String threadLocal = getThreadLocal();
+			ar.set(threadLocal);
+			System.out.println("while setting data..." + threadLocal + " ... " + Thread.currentThread().getName());
 		}).addThreadRelatedDetails(
 				new ThreadingDetails<>().setObjectFromMainFlow(threadLocalValue)
-				.setProcessingForEachThread(data->setString(data.toString()))
+				.setProcessingForEachThread(data->{
+					setString(data.toString());	
+					String threadLocal = getThreadLocal();
+					System.out.println("post setting data..." + threadLocal + " ... " + Thread.currentThread().getName());
+				})
 				.setCleaner(data->{
 					arCleaner.set("called");
 					removeThreadLocal();
+					System.out.println("while removing..."  + Thread.currentThread().getName());
 				})
 		)
-		.start(1000000000);
+		.start(1000);
 		Thread.sleep(10);
+		System.out.println(getThreadLocal() + "..." + Thread.currentThread().getName());
+		
 		assertEquals(threadLocalValue, getThreadLocal());
 		assertEquals(threadLocalValue, ar.get());
 		assertEquals("called", arCleaner.get());

@@ -431,7 +431,7 @@ public abstract class Task implements Poolable {
 	}
 
 	protected void setThreadSpecificAttributesToTask(Task task) {
-		task.details.addAll(this.details);
+		task.getThreadingDetails().addAll(getThreadingDetails());
 	}
 	
 	protected void setThreadSpeceficAttributesToTaskFromOther(Task source, Task destination) {
@@ -884,4 +884,9 @@ public abstract class Task implements Poolable {
 		}
 		return false;
 	}
+	
+	protected List<ThreadingDetails> getThreadingDetails() {
+		return this.details;
+	}
+	
 }
