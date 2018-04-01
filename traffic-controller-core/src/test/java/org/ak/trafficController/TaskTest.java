@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import org.ak.trafficController.Task.TaskType;
@@ -169,7 +170,6 @@ public class TaskTest {
 			try {
 				Thread.sleep(10);
 			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		}
@@ -247,6 +247,56 @@ public class TaskTest {
 			e.printStackTrace();
 			Assert.assertTrue(e.getMessage().equals("MyException"));
 		}
+	}
+	private static ThreadLocal<String> myThreadLocal = new ThreadLocal<>();
+	public static void setString(String name) {
+		myThreadLocal.set(name);
+	}
+	public static String getThreadLocal() {
+		return myThreadLocal.get();
+	}
+	public static void removeThreadLocal() {
+		myThreadLocal.remove();
+	}
+	
+	@Test
+	public void testPrePost() throws Throwable {
+		AtomicReference<String> ar = new AtomicReference<String>();
+		AtomicReference<String> arCleaner = new AtomicReference<String>();
+		String threadLocalValue = "my thread local value";
+		setString(threadLocalValue);
+		TaskExecutor.getInstance().of(()->{
+			ar.set(getThreadLocal());
+		}).addThreadRelatedDetails(
+				new ThreadingDetails<>().setObjectFromMainFlow(threadLocalValue)
+				.setProcessingForEachThread(data->setString(data.toString()))
+				.setCleaner(data->{
+					arCleaner.set("called");
+					removeThreadLocal();
+				})
+		)
+		.start(1000000000);
+		Thread.sleep(10);
+		assertEquals(threadLocalValue, getThreadLocal());
+		assertEquals(threadLocalValue, ar.get());
+		assertEquals("called", arCleaner.get());
+		
+		AtomicInteger tlSet = new AtomicInteger(0);
+		AtomicInteger tlCleared = new AtomicInteger(0);
+		TaskExecutor.getInstance().of(()->{})
+			.addThreadRelatedDetails(
+					new ThreadingDetails<>()
+						.setObjectFromMainFlow(234)
+						.setProcessingForEachThread(data->{tlSet.incrementAndGet();})
+						.setCleaner(data->{
+							tlCleared.incrementAndGet();
+						})
+			).then(()->{}).then(()->{}).thenParallel(()->{},()->{},()->{},()->{})
+		.start(1000000);
+		Thread.sleep(10);
+		assertEquals(tlCleared.get(), tlSet.get());
+		assertTrue(tlCleared.get() >= 7);
+		
 	}
 	
 }

@@ -50,6 +50,7 @@ public abstract class ParallelTask<T> extends Task {
 			ExecutableTask task = getExecutable(runnable, taskType);
 			task.taskExecutor = executor;
 			task.name = name;
+			setThreadSpecificAttributesToTask(task);
 			tasks.add(task);
 		}
 	}
@@ -60,7 +61,9 @@ public abstract class ParallelTask<T> extends Task {
 	 */
 	public void addRunnables(RunnableToBeExecuted... runnables) {
 		for (RunnableToBeExecuted runnable : runnables) {
-			tasks.add(getExecutable(runnable, TaskType.NORMAL));
+			ExecutableTask executable = getExecutable(runnable, TaskType.NORMAL);
+			setThreadSpecificAttributesToTask(executable);
+			tasks.add(executable);
 		}
 	}
 	
@@ -70,7 +73,9 @@ public abstract class ParallelTask<T> extends Task {
 	 */
 	public void addSlowRunnables(RunnableToBeExecuted... runnables) {
 		for (RunnableToBeExecuted runnable : runnables) {
-			tasks.add(getExecutable(runnable, TaskType.SLOW));
+			ExecutableTask executable = getExecutable(runnable, TaskType.SLOW);
+			setThreadSpecificAttributesToTask(executable);
+			tasks.add(executable);
 		}
 	}
 	
@@ -80,6 +85,7 @@ public abstract class ParallelTask<T> extends Task {
 	 */
 	public void addTask(Task task) {
 		task.parentTask = this.parentTask;
+		setThreadSpeceficAttributesToTaskFromOther(this, task);
 		task.then(this::postTaskRun);
 		tasks.add(task);
 	}
@@ -152,6 +158,14 @@ public abstract class ParallelTask<T> extends Task {
 	}
 	
 
+	@Override
+	protected void setThreadSpecificAttributesToTask(Task task) {
+		super.setThreadSpecificAttributesToTask(task);
+		for (Task t : tasks) {
+			setThreadSpeceficAttributesToTaskFromOther(this, t);
+		}
+	}
+	
 	@Override
 	public void clean() {
 		logger.finest(this + " clean called " + tasks + " clear is being called" + this.uniqueNumber);

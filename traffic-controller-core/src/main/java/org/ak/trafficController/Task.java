@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -12,8 +13,15 @@ import java.util.logging.Logger;
 
 import org.ak.trafficController.pool.Poolable;
 
+/**
+ * Task is base class which let caller make small chunks which will run one by one in chain.
+ * @author amit.khosla
+ */
 public abstract class Task implements Poolable {
 	Logger logger = Logger.getLogger(Task.class.getName());
+	
+	List<ThreadingDetails> details = new ArrayList<>();
+	
 	protected Task startingTask;
 	protected Integer uniqueNumber;
 	protected TaskExecutor taskExecutor;
@@ -42,6 +50,7 @@ public abstract class Task implements Poolable {
 		startingTask = null;
 		nextTask = null;
 		uniqueNumber = null;
+		details.clear();
 	}
 	
 	/**
@@ -89,10 +98,21 @@ public abstract class Task implements Poolable {
 	 */
 	protected void execute() {
 		try {
+			details.forEach(ThreadingDetails::setThreadingDetails);
+			TaskDetailsThreadLocal.setTask(this);
 			executeInternal();
 		} catch (Throwable throwable) {
 			handleException(throwable);
 		}
+		cleanThreadRelatedStuff();
+	}
+
+	/**
+	 * 
+	 */
+	private void cleanThreadRelatedStuff() {
+		TaskDetailsThreadLocal.remove();
+		details.forEach(ThreadingDetails::clean);
 	}
 
 	/**
@@ -203,6 +223,8 @@ public abstract class Task implements Poolable {
 		return this.startingTask != this;
 	}
 
+
+	
 	/**
 	 * This will start the execution and calling thread will wait for execution.
 	 * Throwable is thrown if any task execution throws any exception. The user can also handle the exception by adding onException method call.
@@ -210,10 +232,31 @@ public abstract class Task implements Poolable {
 	 * @throws Throwable Throwable is thrown if any method execution fails
 	 */
 	public void start(long timeToWait) throws Throwable {
-		NotifyingTask task = new NotifyingTask(uniqueNumber);
-		then(task);
-		doSubmit();
-		pauseExecutingThread(task, timeToWait);
+		start(timeToWait, true);
+	}
+	
+	/**
+	 * This will start the execution and calling thread will wait for execution.
+	 * Throwable is thrown if any task execution throws any exception. The user can also handle the exception by adding onException method call.
+	 * If shouldLetExecutingThreadWait is set, the executing thread will also wait. Which means, if a task is also having code which want to create a new chain will make the original task to wait.
+	 * This can cause all threads waiting and no work done if new chain is also having same executor in some flow.
+	 * If the executor used is having high number of threads and expected to not cause above issue, then we can go ahead with it.
+	 * @param timeToWait Max time we will wait for the response.
+	 * @param shouldLetExecutingThreadWait Should let an executing thread wait
+	 * @throws Throwable Throwable is thrown if any method execution fails
+	 */
+	public void start(long timeToWait, boolean shouldLetExecutingThreadWait) throws Throwable {
+		Task taskInThread = TaskDetailsThreadLocal.get();
+		if (shouldLetExecutingThreadWait || Objects.isNull(taskInThread)) {
+			NotifyingTask task = new NotifyingTask(uniqueNumber);
+			then(task);
+			doSubmit();
+			pauseExecutingThread(task, timeToWait);
+		} else {
+			Task nextTask = taskInThread.nextTask;
+			this.nextTask = nextTask;
+			taskInThread.nextTask = getStartingTask();
+		}
 	}
 	
 	/**
@@ -222,6 +265,16 @@ public abstract class Task implements Poolable {
 	 */
 	public void start() throws Throwable {
 		start(5*60*60);
+	}
+	
+	/**
+	 * This is default start where we are waiting for 5 minutes to complete of a task chain.
+	 * In this method, if start is called from inside some executing thread, the chain will be included in executing task chain and there will not be wait for this chain to complete.
+	 * Control will return directly back, so it is advised to use this method only in case current method is not having any other task depending on this chain.
+	 * @throws Throwable Throwable is thrown if any method execution fails
+	 */
+	public void startWithoutLettingExecutingThreadWait() throws Throwable {
+		start(5*60*60, false);
 	}
 	
 	/**
@@ -331,6 +384,20 @@ public abstract class Task implements Poolable {
 	 * This starts the current task chain.
 	 */
 	protected void doSubmit() {
+		Task task = getStartingTask();
+		try {
+		taskExecutor.enque(task);
+		} catch (Exception e) {
+			System.err.println(this);
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * This method returns the starting task of the chain.
+	 * @return Starting task of the chain
+	 */
+	private Task getStartingTask() {
 		Task task;
 		if (Objects.isNull(this.parentTask)) {
 			task = this.startingTask;
@@ -341,12 +408,7 @@ public abstract class Task implements Poolable {
 			}
 			task = task.startingTask;
 		}
-		try {
-		taskExecutor.enque(task);
-		} catch (Exception e) {
-			System.err.println(this);
-			e.printStackTrace();
-		}
+		return task;
 	}
 	
 	/**
@@ -364,8 +426,19 @@ public abstract class Task implements Poolable {
 		task.uniqueNumber = this.uniqueNumber;
 		task.taskExecutor = this.taskExecutor;
 		task.parentTask = lastTask.parentTask;
+		setThreadSpecificAttributesToTask(task);
 		return task;
 	}
+
+	protected void setThreadSpecificAttributesToTask(Task task) {
+		task.details.addAll(this.details);
+	}
+	
+	protected void setThreadSpeceficAttributesToTaskFromOther(Task source, Task destination) {
+		destination.details.addAll(source.details);
+	}
+	
+	
 	
 	/**
 	 * This method add a new task in chain which will be run post running current task which will be running the supplier and data can be used further as configured in next tasks.
@@ -615,6 +688,10 @@ public abstract class Task implements Poolable {
 	protected void includeUnlinkTask(Task parallelExecutingTask, UnlinkedTask task) {
 		then(task);
 		parallelExecutingTask.taskExecutor = taskExecutor;
+		Task t = task.nextTask;
+		while (t != null) {
+			setThreadSpecificAttributesToTask(t);
+		}
 	}
 	
 	/**
@@ -746,14 +823,26 @@ public abstract class Task implements Poolable {
 		return name + " Task [type: " + this.getClass() + ", uniqueNumber: " + uniqueNumber + ", taskType : " + taskType + "]";
 	}
 
+	/**
+	 * Get task executor.
+	 * @return Task executor for this task
+	 */
 	public TaskExecutor getTaskExecutor() {
 		return taskExecutor;
 	}
 	
+	/**
+	 * Get start task from which we need to start.
+	 * @return Starting task
+	 */
 	public Task getStartTask() {
 		return this.startingTask;
 	}
 
+	/**
+	 * Get name of task (for debugging purposes).
+	 * @return Name of task
+	 */
 	public String getName() {
 		return name;
 	}
@@ -766,5 +855,33 @@ public abstract class Task implements Poolable {
 	public Task setName(String name) {
 		this.name = name;
 		return this;
+	}
+	
+	/**
+	 * Add thread local handling required for this task.
+	 * If already present, it will not add again.
+	 * @param threadingDetails Threading details
+	 * @param <T> type of threading details
+	 * @return Self for further use
+	 */
+	public <T> Task addThreadRelatedDetails(ThreadingDetails<T> threadingDetails) {
+		if (!containsProcessingConsumer(threadingDetails.getProcessingForEachThread())) {
+			details.add(threadingDetails);
+		}
+		return this;
+	}
+
+	/**
+	 * Do we already have a processor in threading details?
+	 * @param processingConsumer processing consumer
+	 * @return true if contains
+	 */
+	public boolean containsProcessingConsumer(Consumer processingConsumer) {
+		for (ThreadingDetails detail : this.details) {
+			if (detail.getProcessingForEachThread() == processingConsumer) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
