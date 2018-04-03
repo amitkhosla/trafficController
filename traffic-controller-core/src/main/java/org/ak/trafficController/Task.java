@@ -254,7 +254,11 @@ public abstract class Task implements Poolable {
 			pauseExecutingThread(task, timeToWait);
 		} else {
 			Task nextTask = taskInThread.nextTask;
-			this.nextTask = nextTask;
+			Task thisTask = this;
+			if (this instanceof ReturningTask && taskInThread instanceof ReturningTask) {
+				thisTask = ((ReturningTask)this).thenConsume(i->((ReturningTask)taskInThread).updateOutput(i));
+			}
+			thisTask.nextTask = nextTask;
 			taskInThread.nextTask = getStartingTask();
 		}
 	}

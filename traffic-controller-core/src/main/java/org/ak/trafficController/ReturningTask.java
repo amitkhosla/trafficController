@@ -214,5 +214,10 @@ public class ReturningTask<T> extends Task {
 		addBackToPool();
 		return output;
 	}
+	
+	protected ReturningTask<T> updateOutput(T data) {
+		this.output = data;
+		return this;
+	}
 
 }
