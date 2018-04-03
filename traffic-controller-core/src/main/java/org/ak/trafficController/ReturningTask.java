@@ -219,5 +219,14 @@ public class ReturningTask<T> extends Task {
 		this.output = data;
 		return this;
 	}
+	
+	public T getOutput() {
+		if (TaskDetailsThreadLocal.get() != null) {
+			return null;
+		}
+		return get();
+	}
+
+	
 
 }

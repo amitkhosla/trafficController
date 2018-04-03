@@ -112,6 +112,18 @@ public class TaskExecutor {
 	}
 	
 	/**
+	 * Create task which will return some value which will be consumed by next task (if configured by calling @link {@link ReturningTask#thenConsume(java.util.function.Consumer)}).
+	 * @param supplier Supplier which will be run
+	 * @param <T> type of supplier
+	 * @return Returning task
+	 */
+	public <T> ReturningTask<T> slowOf(SupplierWhichCanThrowException<T> supplier) {
+		ReturningTask<T> rt =ReturningTask.getFromPool(ti.incrementAndGet(),supplier, TaskType.SLOW);
+		rt.taskExecutor = this;
+		return rt;
+	}
+	
+	/**
 	 * Create a task which will execute different runnables in parallel.
 	 * @param runnables Executables which we want to run
 	 * @return ParallelExecuting task
