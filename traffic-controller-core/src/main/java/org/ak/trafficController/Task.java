@@ -253,14 +253,28 @@ public abstract class Task implements Poolable {
 			doSubmit();
 			pauseExecutingThread(task, timeToWait);
 		} else {
-			Task nextTask = taskInThread.nextTask;
-			Task thisTask = this;
-			if (this instanceof ReturningTask && taskInThread instanceof ReturningTask) {
-				thisTask = ((ReturningTask)this).thenConsume(i->((ReturningTask)taskInThread).updateOutput(i));
-			}
-			thisTask.nextTask = nextTask;
-			taskInThread.nextTask = getStartingTask();
+			handleSubTask(taskInThread);
 		}
+	}
+
+	/**
+	 * This method handles sub task flow of start where we want to attach requested task chain to currently running chain.
+	 * @param taskInThread
+	 */
+	protected void handleSubTask(Task taskInThread) {
+		Task nextTask = taskInThread.nextTask;
+		Task thisTask = this;
+		if (this instanceof ReturningTask && taskInThread instanceof ReturningTask) {
+			thisTask = ((ReturningTask)this).thenConsume(i->((ReturningTask)taskInThread).updateOutput(i));
+		}
+		thisTask.nextTask = nextTask;
+		Task startingTask2 = getStartingTask();
+		Task t = startingTask2;
+		while (t != null) {
+			t.addThreadDetailsFromTask(taskInThread);
+			t=t.nextTask;
+		}
+		taskInThread.nextTask = startingTask2;
 	}
 	
 	/**
@@ -430,16 +444,22 @@ public abstract class Task implements Poolable {
 		task.uniqueNumber = this.uniqueNumber;
 		task.taskExecutor = this.taskExecutor;
 		task.parentTask = lastTask.parentTask;
-		setThreadSpecificAttributesToTask(task);
+		//setThreadSpecificAttributesToTask(task);
+		task.addThreadDetailsFromTask(this);
 		return task;
 	}
 
-	protected void setThreadSpecificAttributesToTask(Task task) {
-		task.getThreadingDetails().addAll(getThreadingDetails());
+	
+	protected void addThreadDetailsFromTask(Task task) {
+		for (ThreadingDetails detail : task.getThreadingDetails()) {
+			this.addThreadRelatedDetails(detail);
+		}
 	}
 	
 	protected void setThreadSpeceficAttributesToTaskFromOther(Task source, Task destination) {
-		destination.details.addAll(source.details);
+		for (ThreadingDetails detail : source.getThreadingDetails()) {
+			destination.addThreadRelatedDetails(detail);
+		}
 	}
 	
 	
@@ -694,7 +714,7 @@ public abstract class Task implements Poolable {
 		parallelExecutingTask.taskExecutor = taskExecutor;
 		Task t = task.nextTask;
 		while (t != null) {
-			setThreadSpecificAttributesToTask(t);
+			t.addThreadDetailsFromTask(this);
 		}
 	}
 	

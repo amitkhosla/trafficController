@@ -166,6 +166,17 @@ public abstract class ParallelTask<T> extends Task {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.ak.trafficController.Task#addThreadDetailsFromTask(org.ak.trafficController.Task)
+	 */
+	@Override
+	protected void addThreadDetailsFromTask(Task task) {
+		super.addThreadDetailsFromTask(task);
+		for (Task t : tasks) {
+			t.addThreadDetailsFromTask(this);
+		}
+	}
+	
 	@Override
 	public void clean() {
 		logger.finest(this + " clean called " + tasks + " clear is being called" + this.uniqueNumber);
