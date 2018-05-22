@@ -74,6 +74,7 @@ public abstract class ParallelTask<T> extends Task {
 	public void addSlowRunnables(RunnableToBeExecuted... runnables) {
 		for (RunnableToBeExecuted runnable : runnables) {
 			ExecutableTask executable = getExecutable(runnable, TaskType.SLOW);
+			super.setThreadSpeceficAttributesToTaskFromOther(this, executable);
 			setThreadSpecificAttributesToTask(executable);
 			tasks.add(executable);
 		}
@@ -158,9 +159,8 @@ public abstract class ParallelTask<T> extends Task {
 	}
 	
 
-	@Override
 	protected void setThreadSpecificAttributesToTask(Task task) {
-		super.setThreadSpecificAttributesToTask(task);
+		super.setThreadSpeceficAttributesToTaskFromOther(this, task);
 		for (Task t : tasks) {
 			setThreadSpeceficAttributesToTaskFromOther(this, t);
 		}
