@@ -457,7 +457,7 @@ public abstract class Task implements Poolable {
 		Task nextTask = this.nextTask;
 		while (nextTask != null) {
 			nextTask.addThreadDetailsFromTask(task);
-			nextTask = this.nextTask;
+			nextTask = nextTask.nextTask;
 		}
 		
 	}
