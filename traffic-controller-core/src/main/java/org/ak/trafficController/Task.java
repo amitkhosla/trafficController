@@ -454,6 +454,12 @@ public abstract class Task implements Poolable {
 		for (ThreadingDetails detail : task.getThreadingDetails()) {
 			this.addThreadRelatedDetails(detail);
 		}
+		Task nextTask = this.nextTask;
+		while (nextTask != null) {
+			nextTask.addThreadDetailsFromTask(task);
+			nextTask = this.nextTask;
+		}
+		
 	}
 	
 	protected void setThreadSpeceficAttributesToTaskFromOther(Task source, Task destination) {
@@ -712,10 +718,7 @@ public abstract class Task implements Poolable {
 	protected void includeUnlinkTask(Task parallelExecutingTask, UnlinkedTask task) {
 		then(task);
 		parallelExecutingTask.taskExecutor = taskExecutor;
-		Task t = task.nextTask;
-		while (t != null) {
-			t.addThreadDetailsFromTask(this);
-		}
+		task.addThreadDetailsFromTask(this);
 	}
 	
 	/**
