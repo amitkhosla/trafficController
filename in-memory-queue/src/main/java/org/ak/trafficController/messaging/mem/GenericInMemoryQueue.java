@@ -66,6 +66,64 @@ public class GenericInMemoryQueue<T> {
 	 */
 	private AtomicLong numberOfItemsInQueue = new AtomicLong(0L);
 	
+	private Long sleepPostConsumingAll = 0l;
+	
+	private boolean shouldSleepConsumingAll = false;
+	
+	private boolean shouldSleepAfterEveryConsumption = false;
+	
+	private Long sleepPostConsumingEvery = 0L;
+	
+	/**
+	 * @return the sleepPostConsumingEvery
+	 */
+	public Long getSleepPostConsumingEvery() {
+		return sleepPostConsumingEvery;
+	}
+
+	/**
+	 * This method sets sleepPostConsumingEvery with the value passed.
+	 * @param sleepPostConsumingEvery the sleepPostConsumingEvery to set
+	 * @return Self to use further
+	 */
+	public GenericInMemoryQueue<T> setSleepPostConsumingEach(Long sleepPostConsumingEvery) {
+		this.sleepPostConsumingEvery = sleepPostConsumingEvery;
+		this.shouldSleepAfterEveryConsumption = true;
+		return this;
+	}
+
+	/**
+	 * @return the shouldSleepConsumingAll
+	 */
+	public boolean isShouldSleepConsumingAll() {
+		return shouldSleepConsumingAll;
+	}
+
+	/**
+	 * @return the shouldSleepAfterEveryConsumption
+	 */
+	public boolean isShouldSleepAfterEveryConsumption() {
+		return shouldSleepAfterEveryConsumption;
+	}
+
+	/**
+	 * @return the sleepPostConsumingAll
+	 */
+	public Long getSleepPostConsumingAll() {
+		return sleepPostConsumingAll;
+	}
+
+	/**
+	 * This method sets sleepPostConsumingAll with the value passed.
+	 * @param sleepPostConsumingAll the sleepPostConsumingAll to set
+	 * @return Self to use further
+	 */
+	public GenericInMemoryQueue<T> setSleepPostConsumingAll(Long sleepPostConsumingAll) {
+		this.sleepPostConsumingAll = sleepPostConsumingAll;
+		this.shouldSleepConsumingAll = true;
+		return this;
+	}
+
 	/**
 	 * Constructor of Generic in memory queue.
 	 * @param name Name of queue
@@ -123,8 +181,36 @@ public class GenericInMemoryQueue<T> {
 			numberOfItemsInQueue.decrementAndGet();
 			try {
 				consumer.accept(item);
+				sleepIfConfiguredPostEveryConsumption();
 			} catch (Exception e) {
 				logError(getExceptionMessage(consumerName, item) + e, e);
+			}
+		}
+		sleepIfConfigured();
+	}
+
+	/**
+	 * 
+	 */
+	protected void sleepIfConfiguredPostEveryConsumption() {
+		if (shouldSleepAfterEveryConsumption) {
+			try {
+				Thread.sleep(sleepPostConsumingEvery);
+			} catch (InterruptedException e) {
+				logError("Exception occured post processing a message and while sleeping", e);
+			}
+		}
+	}
+
+	/**
+	 * Sleep post consuming all messages if configured.
+	 */
+	protected void sleepIfConfigured() {
+		if (shouldSleepConsumingAll) {
+			try {
+				Thread.sleep(sleepPostConsumingAll);
+			} catch (InterruptedException e) {
+				logError("Exception occured post processing all messages and while sleeping", e);
 			}
 		}
 	}
@@ -252,11 +338,13 @@ public class GenericInMemoryQueue<T> {
 			}
 			try {
 				consumer.accept(output);
+				sleepIfConfiguredPostEveryConsumption();
 			} catch (Exception e) {
 				logError(this.getExceptionMessage(consumerName, output), e);
 			}
 
 		}
+		sleepIfConfigured();
 	}
 
 	/**

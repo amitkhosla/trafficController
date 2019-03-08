@@ -56,6 +56,28 @@ public class InMemoryQueue<T> {
 	 * Count of batch consumers.
 	 */
 	private int batchConsumerCount = 1;
+	
+	private Long sleepTimePostConsumingAllMessage = 0L;
+	
+	private Long sleepTimePostEachConsumption = 0l;
+
+	/**
+	 * @return the sleepTimePostEachConsumption
+	 */
+	public Long getSleepTimePostEachConsumption() {
+		return sleepTimePostEachConsumption;
+	}
+
+	/**
+	 * This method sets sleepTimePostEachConsumption with the value passed.
+	 * @param sleepTimePostEachConsumption the sleepTimePostEachConsumption to set
+	 * @return Self to use further
+	 */
+	public InMemoryQueue<T> setSleepTimePostEachConsumption(Long sleepTimePostEachConsumption) {
+		this.sleepTimePostEachConsumption = sleepTimePostEachConsumption;
+		this.inMemoryQueue.setSleepPostConsumingEach(sleepTimePostEachConsumption);
+		return this;
+	}
 
 	//Consumers for regisering or unregister a consumer of queue.
 	private Consumer<Integer> unregisterDirectConsumer = i->inMemoryQueue.unregister(getDirectConsumerName(i));
@@ -313,4 +335,23 @@ public class InMemoryQueue<T> {
 		this.batchConsumer = null;
 		inMemoryQueue.removeAllBatchConsumers();
 	}
+	
+	/**
+	 * @return the sleepTimePostConsumingAllMessage
+	 */
+	public Long getSleepTimePostConsumingAllMessage() {
+		return sleepTimePostConsumingAllMessage;
+	}
+
+	/**
+	 * This method sets sleepTimePostConsumingAllMessage with the value passed.
+	 * @param sleepTimePostConsumingAllMessage the sleepTimePostConsumingAllMessage to set
+	 * @return Self to use further
+	 */
+	public InMemoryQueue<T> setSleepTimePostConsumingAllMessage(Long sleepTimePostConsumingAllMessage) {
+		this.sleepTimePostConsumingAllMessage = sleepTimePostConsumingAllMessage;
+		inMemoryQueue.setSleepPostConsumingAll(sleepTimePostConsumingAllMessage);
+		return this;
+	}
+	
 }
