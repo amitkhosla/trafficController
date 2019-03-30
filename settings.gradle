@@ -1,2 +1,2 @@
 
-include "in-memory-queue", "memory-pool", "traffic-controller-core", "traffic-controller-annotations", "in-memory-queue-annotations"
+include "in-memory-queue", "memory-pool", "traffic-controller-core", "traffic-controller-annotations", "in-memory-queue-annotations", "multi-requests-handler"
