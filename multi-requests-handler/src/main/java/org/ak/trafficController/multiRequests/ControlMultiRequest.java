@@ -53,4 +53,10 @@ public @interface ControlMultiRequest {
 	 * @return interval in retry
 	 */
 	int retryInterval() default 0;
+	
+	/**
+	 * Unique Name finder method for the given method.
+	 * @return Unique name finder method in the same class
+	 */
+	String nameFinderMethod() default ""; 
 }

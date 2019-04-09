@@ -290,26 +290,38 @@ public class MultiRequestHandler {
 			Map<String, T> toBeRun, Map<String, T> waiting) {
 		for (T item : collection) {
 			String name = getName(uniqueName, item);
-			R obj = getIfAlreadyRan(name);
+			Object obj = getIfAlreadyRan(name);
 			if (obj != null) { //already run.
-				result.put(item, obj);
+				addOutputFromAlreadyRunResults(result, item, obj);
 			} else if (running.get(name) != null) {
 					waiting.put(name, item);
 			} else {
 				name = name.intern();
 				synchronized (name) {
-					R obj1 = getIfAlreadyRan(name);
+					Object obj1 = getIfAlreadyRan(name);
 					if (obj1 != null) { //already run.
-						result.put(item, obj1);
+						addOutputFromAlreadyRunResults(result, item, obj1);
 					} else if (running.get(name) != null) {
 						waiting.put(name, item);
 					} else {
 						running.put(name, LocalDateTime.now());
 					}
-						toBeRun.put(name, item);
+					toBeRun.put(name, item);
 				}
 			}
 		};
+	}
+
+	/**
+	 * @param result
+	 * @param item
+	 * @param obj
+	 */
+	private <R, T> void addOutputFromAlreadyRunResults(Map<T, R> result, T item, Object obj) {
+		if (obj == MultiRequestDTO.NULL_OBJECT) {
+			obj = null;
+		}
+		result.put(item, (R) obj);
 	}
 	
 	/**
@@ -358,16 +370,16 @@ public class MultiRequestHandler {
 		while (!waiting.isEmpty()) {
 			List<String> list = new ArrayList<>(waiting.keySet());
 			list.forEach(s->{
-				R r = getIfAlreadyRan(s);
+				Object r = getIfAlreadyRan(s);
 				if (r != null) {
 					T t = waiting.remove(s);
-					result.put(t, r);
+					addOutputFromAlreadyRunResults(result, t, r);
 				} else if (running.get(s) == null) {
 					//lets try once more
-					R r1 = getIfAlreadyRan(s);
+					Object r1 = getIfAlreadyRan(s);
 					if (r1 != null) {
 						T t = waiting.remove(s);
-						result.put(t, r);
+						addOutputFromAlreadyRunResults(result, t, r1);
 					} else {
 						returnedNull.put(s, waiting.remove(s));
 					}
@@ -376,7 +388,7 @@ public class MultiRequestHandler {
 			try {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				logger.log(Level.FINE, "Could Not sleep", e);
 			}
 		}
 		
@@ -495,7 +507,10 @@ public class MultiRequestHandler {
 	 */
 	public <T> T process(Supplier<T> supplier, boolean isAsync, String name, Long timeToKeep, int numberOfRetries, int retryIntervals) {
 		name = name.intern();
-		T obj = getIfAlreadyRan(name);
+		Object obj = getIfAlreadyRan(name);
+		if (obj != null) {
+			return obj == MultiRequestDTO.NULL_OBJECT ? null : (T) obj;
+		}
 		boolean shouldRun = shouldRunFurther(name);
 		
 		if (shouldRun) {
@@ -512,14 +527,14 @@ public class MultiRequestHandler {
 	 * @param <T> Type of expected result
 	 * @return Result if already ran else null
 	 */
-	protected <T> T getIfAlreadyRan(String name) {
+	protected Object getIfAlreadyRan(String name) {
 		MultiRequestDTO multiRequestDTO = ran.get(name);
 		if (multiRequestDTO != null) {
 			Object obj = multiRequestDTO.getOutput();
 			if (obj == MultiRequestDTO.INVALIDATED_OBJECT) {
 				ran.remove(name);
 			} else {
-				return (T) obj;
+				return obj;
 			}
 		}
 		return null;

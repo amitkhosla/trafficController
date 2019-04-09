@@ -3,10 +3,16 @@
  */
 package org.ak.trafficController.multiRequests;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.inject.Named;
 
@@ -21,6 +27,9 @@ import org.aspectj.lang.annotation.Aspect;
 @Named
 @Aspect
 public class ControlMultiRequestHandler {
+	
+	Logger LOGGER = Logger.getLogger(ControlMultiRequestHandler.class.getName());
+	
 	@Around("execution(@org.ak.trafficController.multiRequests.ControlMultiRequest * *(..)) && @annotation(controlMultiRequest))")
 	public Object process(ProceedingJoinPoint joinPoint, ControlMultiRequest controlMultiRequest) throws Throwable {
 		String name = getName(controlMultiRequest, joinPoint);
@@ -53,7 +62,9 @@ public class ControlMultiRequestHandler {
 			}
 			return null;
 		};
-		Object output = getHandler().processListToMap(function, (List<Object>)joinPoint.getArgs()[0], name, controlMultiRequest.reusePreviousRunResult() * 1000, !controlMultiRequest.shouldWait());
+		MultiRequestHandler handler = getHandler();
+		name = getNameIfOtherParamsAvailable(joinPoint, name, handler);
+		Object output = handler.processListToMap(function, (List<Object>) joinPoint.getArgs()[0], name, controlMultiRequest.reusePreviousRunResult() * 1000, !controlMultiRequest.shouldWait());
 		if (throwable.get() == null) {
 			return output;
 		} else {
@@ -61,7 +72,24 @@ public class ControlMultiRequestHandler {
 		}
 	}
 
-	
+
+	/**
+	 * Get name for the partial case where we have other params as well.
+	 * @param joinPoint Join point of the call
+	 * @param name Name passed
+	 * @param handler Handler which will be used to find the name
+	 * @return The updated name
+	 */
+	private String getNameIfOtherParamsAvailable(ProceedingJoinPoint joinPoint, String name,
+			MultiRequestHandler handler) {
+		Object[] args = joinPoint.getArgs();
+		if (args.length > 1) {
+			Object[] nameArgs = Arrays.copyOfRange(args, 1, args.length);
+			name = handler.getName(name, nameArgs);
+		}
+		return name;
+	}
+
 	/**
 	 * Handle the normal flow where we are expecting the input is single entity.
 	 * @param joinPoint The process handle which will be used to extract results
@@ -106,9 +134,69 @@ public class ControlMultiRequestHandler {
 	protected String getName(ControlMultiRequest controlMultiRequest, ProceedingJoinPoint joinPoint) {
 		String uniqueName = controlMultiRequest.uniqueName();
 		if (uniqueName == null || uniqueName.isEmpty()) {
+			String nameFinderMethod = controlMultiRequest.nameFinderMethod();
+			if (!isEmpty(nameFinderMethod)) {
+				String nameFromRunningMethod = getNameByRunningMethod(joinPoint, nameFinderMethod);
+				if (!isEmpty(nameFromRunningMethod)) {
+					return nameFromRunningMethod;
+				}
+			} 
 			return joinPoint.getSignature().toString();
 		}
 		return uniqueName;
+	}
+
+	boolean isEmpty(String string) {
+		return null == string || string.trim().isEmpty();
+	}
+
+	/**
+	 * @param joinPoint
+	 * @param nameFinderMethod
+	 * @return
+	 */
+	protected String getNameByRunningMethod(ProceedingJoinPoint joinPoint, String nameFinderMethod) {
+		Object target = joinPoint.getTarget();
+		return getNameByRunningMethod(nameFinderMethod, target);
+	}
+
+	Map<String, Method> methodMappings = new ConcurrentHashMap<>();
+
+	/**
+	 * @param nameFinderMethod
+	 * @param target
+	 * @return
+	 */
+	protected String getNameByRunningMethod(String nameFinderMethod, Object target) {
+		Class c = target.getClass();
+		String nameInCache = (c.getName() + "-" + nameFinderMethod).intern();
+		Method m = methodMappings.get(nameInCache);
+		if (m == null) {
+			while (c!=null) {
+				try {
+					m = c.getDeclaredMethod(nameFinderMethod);
+					methodMappings.put(nameInCache, m);
+				} catch (Exception e) {
+					LOGGER.fine("could not process for given class, trying for super.");
+				} 
+				c= c.getSuperclass();
+			}
+		}
+		if (m == null) {
+			return null;
+		}
+		boolean accessible = m.isAccessible();
+		m.setAccessible(true);
+		String output = null;
+		try {
+			output = (String) m.invoke(target);
+		} catch (Exception e) {
+			LOGGER.log(Level.FINE, "Could not execute the method", e);
+		}
+		if (!accessible) {
+			m.setAccessible(accessible);
+		}
+		return output;
 	}
 	
 }

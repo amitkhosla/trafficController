@@ -15,7 +15,8 @@ public class MultiRequestDTO {
 	private String name;
 	private LocalDateTime timeWhenStarted;
 	private LocalDateTime expiryTime;
-	public static Object INVALIDATED_OBJECT = new Object(); 
+	public static Object INVALIDATED_OBJECT = new Object();
+	public static Object NULL_OBJECT = new Object();
 	
 	/**
 	 * The expiration time of the object.
@@ -69,7 +70,11 @@ public class MultiRequestDTO {
 	 * @return Self to use further
 	 */
 	public MultiRequestDTO setOutput(Object output) {
-		this.output = output;
+		if (output==null) {
+			this.output = NULL_OBJECT;
+		} else {
+			this.output = output;
+		}
 		return this;
 	}
 	/**
