@@ -307,27 +307,7 @@ public class MultiRequestHandlerTest {
 	}
 	
 	
-	@Test
-	public void testpopulateFromWaiting() {
-		MultiRequestHandler.hanlderInstance.ran.put("k", new MultiRequestDTO().setOutput("v").setTime(1000000l).setName("k"));
-		MultiRequestHandler.hanlderInstance.running.put("k1", LocalDateTime.now());
-		Thread t = new Thread(()->{
-			try {
-				Thread.sleep(50);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			MultiRequestHandler.hanlderInstance.running.remove("k1");
-		});
-		t.start();
-		Map<String, String> waiting = new HashMap<>();
-		waiting.put("k", "asd");
-		waiting.put("k1", "asd1");
-		Map<String, String> result = new HashMap<>();
-		Map<String, String> returnedNull = new HashMap<>();
-		MultiRequestHandler.hanlderInstance.populateFromWaiting(waiting, result, returnedNull);
-	}
-
+	
 	/**
 	 * @param endIndex
 	 * @return

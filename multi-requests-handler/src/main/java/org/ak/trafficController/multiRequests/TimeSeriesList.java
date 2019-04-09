@@ -98,7 +98,8 @@ public class TimeSeriesList {
 	}
 	
 	/**
-	 * @param item
+	 * Add item to the times.
+	 * @param item Item to be added
 	 */
 	protected void addItemToItems(MultiRequestDTO item) {
 		ConcurrentLinkedQueue<MultiRequestDTO> clq = items.get(item.getExpiryTime());

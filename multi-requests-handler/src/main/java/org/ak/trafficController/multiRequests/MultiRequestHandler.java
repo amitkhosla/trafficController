@@ -6,9 +6,7 @@ package org.ak.trafficController.multiRequests;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,9 +45,11 @@ public class MultiRequestHandler {
 	
 	AtomicInteger returnedWithoutExecution = new AtomicInteger(0);
 	AtomicInteger returnedWithoutWaitingToExecutedAsAsync = new AtomicInteger(0);
-	
+	WaitsHandler waitsHandler;
 	public MultiRequestHandler() {
 		this.list.setConsumer(m->ran.remove(m.getName()));
+		waitsHandler = new WaitsHandler();
+		waitsHandler.initialize();
 	}
 	
 	/**
@@ -215,9 +215,11 @@ public class MultiRequestHandler {
 		if (waiting.isEmpty()) {
 			runMissings(function, expiry, result, toBeRun);
 		} else {
-			Thread waitingThread = startLookingForWaitingThread(waiting, resultFromWait, postWaitCouldNotGet);
+			//Thread waitingThread = startLookingForWaitingThread(waiting, resultFromWait, postWaitCouldNotGet);
+			Supplier<Boolean> supplier = ()->tryPopulatingFromWaitingAndSeeShouldWaitFurther(waiting, result, postWaitCouldNotGet);
+			waitsHandler.suppliers.add(supplier);
 			runMissings(function, expiry, result, toBeRun);
-			waitForWaitings(result, resultFromWait, waitingThread);
+			waitForWaitings(result, resultFromWait, waiting);
 			runMissings(function, expiry, result, postWaitCouldNotGet);
 		}
 		return result;
@@ -232,13 +234,15 @@ public class MultiRequestHandler {
 	 * @param resultFromWait The waiting result which will be filled once the waiting part completes
 	 * @param <T> Type of elements in list
 	 * @param <R> Type of result of elements
-	 * @param waitingThread Thread which is running waiting part
+	 * @param waiting Map which is being looked at for emptiness
 	 */
-	protected <T, R> void waitForWaitings(Map<T, R> result, Map<T, R> resultFromWait, Thread waitingThread) {
-		try {
-			waitingThread.join();
-		} catch (InterruptedException e) {
-			logger.log(Level.FINE, "Interruption received when we were looking to join the thread which is waiting and populating the data.", e);
+	protected <T, R> void waitForWaitings(Map<T, R> result, Map<T, R> resultFromWait, Map<String, T> waiting) {
+		while (!waiting.isEmpty()) {
+			try {
+				Thread.sleep(5L);
+			} catch (InterruptedException e) {
+				logger.log(Level.FINE, "Could not sleep", e);
+			}
 		}
 		result.putAll(resultFromWait);
 	}
@@ -257,23 +261,6 @@ public class MultiRequestHandler {
 		if (!toBeRun.isEmpty()) {
 			result.putAll(populateByrunning(toBeRun, function, expiry));
 		}
-	}
-	
-	/**
-	 * This creates the thread which looks for items we need to wait for.
-	 * @param waiting Waiting map which contains name to object mappings
-	 * @param resultFromWait Post processing, result will be pushed to this
-	 * @param postWaitCouldNotGet A few racing condition where we found the records but it expired before we could use 
-	 * @param <T> Type of elements in list
-	 * @param <R> Type of result of elements
-	 * @return The thread which is running waiting logic
-	 */
-	protected <T, R> Thread startLookingForWaitingThread(Map<String, T> waiting, Map<T, R> resultFromWait,
-			Map<String, T> postWaitCouldNotGet) {
-		///TODO - MayBe we might need to think about the creation of new thread should be avoided.
-		Thread t1 = new Thread(()->populateFromWaiting(waiting, resultFromWait, postWaitCouldNotGet));
-		t1.start();
-		return t1;
 	}
 	
 	/**
@@ -357,41 +344,34 @@ public class MultiRequestHandler {
 		}
 	}
 	
+	
+
 	/**
-	 * Populate from other processes which are running for given items.
-	 * Thus, wait for those process(es) to complete and keep populating the records.
-	 * @param waiting Waiting map containing all records for which we have to wait; key being name for the item and item as value
-	 * @param result Result to be populated from the waiting records
-	 * @param returnedNull A few racing condition where we found the records but it expired before we could use 
-	 * @param <T> Type of elements in list
-	 * @param <R> Type of result of elements
+	 * @param waiting
+	 * @param result
+	 * @param returnedNull
+	 * @return 
 	 */
-	protected <T,R> void populateFromWaiting(Map<String, T> waiting, Map<T, R> result, Map<String, T> returnedNull) {
-		while (!waiting.isEmpty()) {
-			List<String> list = new ArrayList<>(waiting.keySet());
-			list.forEach(s->{
-				Object r = getIfAlreadyRan(s);
-				if (r != null) {
+	private <T, R> boolean tryPopulatingFromWaitingAndSeeShouldWaitFurther(Map<String, T> waiting, Map<T, R> result,
+			Map<String, T> returnedNull) {
+		List<String> list = new ArrayList<>(waiting.keySet());
+		list.forEach(s->{
+			Object r = getIfAlreadyRan(s);
+			if (r != null) {
+				T t = waiting.remove(s);
+				addOutputFromAlreadyRunResults(result, t, r);
+			} else if (running.get(s) == null) {
+				//lets try once more
+				Object r1 = getIfAlreadyRan(s);
+				if (r1 != null) {
 					T t = waiting.remove(s);
-					addOutputFromAlreadyRunResults(result, t, r);
-				} else if (running.get(s) == null) {
-					//lets try once more
-					Object r1 = getIfAlreadyRan(s);
-					if (r1 != null) {
-						T t = waiting.remove(s);
-						addOutputFromAlreadyRunResults(result, t, r1);
-					} else {
-						returnedNull.put(s, waiting.remove(s));
-					}
+					addOutputFromAlreadyRunResults(result, t, r1);
+				} else {
+					returnedNull.put(s, waiting.remove(s));
 				}
-			});
-			try {
-				Thread.sleep(10);
-			} catch (InterruptedException e) {
-				logger.log(Level.FINE, "Could Not sleep", e);
 			}
-		}
-		
+		});
+		return !waiting.isEmpty();
 	}
 	
 	
@@ -524,7 +504,6 @@ public class MultiRequestHandler {
 	/**
 	 * Validate if already ran within the expiration limit set at time of running.
 	 * @param name Unique name against which process was run
-	 * @param <T> Type of expected result
 	 * @return Result if already ran else null
 	 */
 	protected Object getIfAlreadyRan(String name) {

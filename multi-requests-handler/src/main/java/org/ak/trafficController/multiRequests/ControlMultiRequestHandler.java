@@ -151,9 +151,10 @@ public class ControlMultiRequestHandler {
 	}
 
 	/**
-	 * @param joinPoint
-	 * @param nameFinderMethod
-	 * @return
+	 * Get name by running method.
+	 * @param joinPoint Join point to be run
+	 * @param nameFinderMethod Name finder method
+	 * @return Returns the name post running the method, returns null if method is not found
 	 */
 	protected String getNameByRunningMethod(ProceedingJoinPoint joinPoint, String nameFinderMethod) {
 		Object target = joinPoint.getTarget();
@@ -163,9 +164,10 @@ public class ControlMultiRequestHandler {
 	Map<String, Method> methodMappings = new ConcurrentHashMap<>();
 
 	/**
-	 * @param nameFinderMethod
-	 * @param target
-	 * @return
+	 * Get name by running the method. Returns output of the method. Returns null if method not found.
+	 * @param nameFinderMethod Name of the method
+	 * @param target The object having the method
+	 * @return The output of the method or null if method not found
 	 */
 	protected String getNameByRunningMethod(String nameFinderMethod, Object target) {
 		Class c = target.getClass();
